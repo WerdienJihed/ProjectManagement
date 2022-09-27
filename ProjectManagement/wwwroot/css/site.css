@@ -16,3 +16,15 @@ html {
 body {
   margin-bottom: 60px;
 }
+
+
+.status-container{
+  border: solid 1px black;
+  /*margin:5px;*/
+  padding:10px;
+  min-height:70vh;
+}
+
+.ticket{
+    cursor:pointer;
+}

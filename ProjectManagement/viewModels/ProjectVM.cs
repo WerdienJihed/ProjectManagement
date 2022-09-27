@@ -1,6 +1,10 @@
-﻿using Microsoft.AspNetCore.Mvc.Rendering;
+﻿using Microsoft.AspNetCore.Mvc;
+using Microsoft.AspNetCore.Mvc.Rendering;
 using ProjectManagement.Models;
+using System.ComponentModel;
+using System.ComponentModel.DataAnnotations;
 using System.Security.Policy;
+using System.Windows.Markup;
 
 namespace ProjectManagement.viewModels
 {
@@ -32,6 +36,7 @@ namespace ProjectManagement.viewModels
 
 	public class ProjectEditVM : ProjectBaseVM
 	{
+		[DisplayName("Status")]
 		public Guid SelectedStatusId { get; set; }
 		public List<StatusBaseVM> Statuses { get; set; } = new List<StatusBaseVM>();
 	}

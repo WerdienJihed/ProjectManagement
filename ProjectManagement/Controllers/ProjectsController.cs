@@ -168,22 +168,17 @@ namespace ProjectManagement.Controllers
             {
                 return NotFound();
             }
+			var statues = await _context.Statuses.ToListAsync();
+			statues.ForEach(status => projectVM.Statuses.Add(new StatusBaseVM() { Id = status.Id, Name = status.Name }));
+			
 
-            if (ModelState.IsValid)
+			if (ModelState.IsValid)
             {
                 try
                 {
                     Project project = await _repository.FindById(id);
-                    project.Name = projectVM.Name;
-                    if (_context.Statuses != null) 
-                    {
-                        var status = await _context.Statuses.FindAsync(projectVM.SelectedStatusId);
-                        if (status != null) 
-                        {
-                            project.Status = status;
-                        }
-					} 
-
+					var status = statues.FirstOrDefault(s => s.Id == projectVM.SelectedStatusId);
+					project.Status = status;
 					await _repository.Update(project);
                 }
                 catch (DbUpdateConcurrencyException)

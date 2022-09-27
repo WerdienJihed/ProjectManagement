@@ -4,40 +4,101 @@
     ViewData["Title"] = "Index";
 }
 
-<h1>Index</h1>
+<h1 class="text-center"> Tickets </h1>
 
-<table class="table">
-    <thead>
-        <tr>
-            <th>
-                @Html.DisplayNameFor(model => model.Name)
-            </th>
-            <th>
-                @Html.DisplayNameFor(model => model.Project)
-            </th>
-            <th>
-                @Html.DisplayNameFor(model => model.Status)
-            </th>
-            <th></th>
-        </tr>
-    </thead>
-    <tbody>
-        @foreach (var item in Model)
-        {
-            <tr>
-                <td>
-                    @Html.DisplayFor(modelItem => item.Name)
-                </td>
-                <td>
-                    @Html.DisplayFor(modelItem => item.Project)
-                </td>
-                <td>
-                    @Html.DisplayFor(modelItem => item.Status)
-                </td>
-                <td>
-                    <a asp-action="Edit" asp-route-id="@item.Id">Edit</a> 
-                </td>
-            </tr>
-        }
-    </tbody>
-</table>
+
+<div class="container">
+    <div class="row text-center">
+            <div class="col">
+                <h5>Pending</h5>
+                <div class="status-container" id="pending">
+                    @foreach (var item in Model)
+                    {
+                        if (item.Status == "Pending")
+                        {
+                            <div class="alert alert-primary ticket" role="alert"id="@item.Id">
+                                @Html.DisplayFor(modelItem => item.Name)
+                            </div>
+                        }
+                    }
+                </div>
+            </div>
+            <div class="col">
+                <h5>Started</h5>
+                <div class="status-container" id="started">
+                    @foreach (var item in Model)
+                    {
+                        if (item.Status == "Started")
+                        {
+                            <div class="alert alert-primary" role="alert" id="@item.Id">
+                                @Html.DisplayFor(modelItem => item.Name)
+                            </div>
+                        }
+                    }
+                </div>
+            </div>
+            <div class="col">
+                <h5>Blocked</h5>
+                <div class="status-container" id="blocked">
+                    @foreach (var item in Model)
+                    {
+                        if (item.Status == "Blocked")
+                        {
+                            <div class="alert alert-primary" role="alert" id="@item.Id">
+                                @Html.DisplayFor(modelItem => item.Name)
+                            </div>
+                        }
+                    }
+                </div>
+            </div>
+            <div class="col">
+                <h5>completed</h5>
+                <div class="status-container" id="completed">
+                    @foreach (var item in Model)
+                    {
+                        if (item.Status == "Completed")
+                        {
+                            <div class="alert alert-primary" role="alert" id="@item.Id">
+                                @Html.DisplayFor(modelItem => item.Name)
+                            </div>
+                        }
+                    }
+                </div>
+            </div>
+    </div>
+</div>
+
+@section Scripts {
+    <script>
+        const pending = document.querySelector('#pending');
+        const started = document.querySelector('#started');
+        const blocked = document.querySelector('#blocked');
+        const completed = document.querySelector('#completed');
+
+        const containers = [pending, started, blocked, completed];
+
+        const drake = dragula(containers);
+        const drop = (el, target) => {
+            const id = el.id;
+            const selectedStatus = target.id.charAt(0).toUpperCase() + target.id.slice(1);
+            const url = '@Url.Action("EditTicketStatus","Tickets")/' + id;
+            fetch(url, {
+                method: 'POST',
+                headers:{
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify(selectedStatus)
+             })
+            .then(response=>{
+                    if (!response.ok) console.error("Unable to update item status!");
+            })
+            .catch(error => console.error("Unable to update item status!"));
+        };
+
+        drake.on('drop', drop);
+    </script>
+}
+
+
+
+

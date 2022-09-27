@@ -5,6 +5,7 @@ using ProjectManagement.Contracts;
 using ProjectManagement.Data;
 using ProjectManagement.Models;
 using ProjectManagement.viewModels;
+using System.Net;
 using System.Security.Claims;
 
 namespace ProjectManagement.Controllers
@@ -132,7 +133,19 @@ namespace ProjectManagement.Controllers
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> Create(TicketCreateVM ticketVM)
         {
-            if (ModelState.IsValid)
+			var projects = await _projectRepository.FindAll();
+			var developers = await _developerRepository.FindAll();
+			projects.ToList().ForEach(project => ticketVM.Projects?.Add(new ProjectBaseVM() { Id = project.Id, Name = project.Name }));
+			developers.
+				ToList().
+				ForEach(developer => ticketVM.Developers?.Add(
+							new DeveloperBaseVM()
+							{
+								Id = Guid.Parse(developer.Id),
+								FullName = $"{developer.FirstName} {developer.LastName}"
+							}));
+
+			if (ModelState.IsValid)
             {
                 ApplicationUser developer = await _developerRepository.FindById(ticketVM.SelectedDeveloperId);
                 Project project = await _projectRepository.FindById(ticketVM.SelectedProjectId);
@@ -201,7 +214,17 @@ namespace ProjectManagement.Controllers
                 return NotFound();
             }
 
-            if (ModelState.IsValid)
+			var projects = await _projectRepository.FindAll();
+			var developers = await _developerRepository.FindAll();
+			var statuses = await _context.Statuses.ToListAsync();
+
+			projects.ToList().ForEach(project => ticketVM.Projects?.Add(new ProjectBaseVM() { Id = project.Id, Name = project.Name }));
+			developers.ToList().ForEach(user => ticketVM.Developers?.Add(new DeveloperBaseVM() { Id = Guid.Parse(user.Id), FullName = $"{user.FirstName} {user.LastName}" }));
+			statuses.ForEach(status => ticketVM.Statuses?.Add(new StatusBaseVM() { Id = status.Id, Name = status.Name }));
+
+			var Status = await _context.Statuses.FindAsync(ticketVM.SelectedStatusId);
+
+			if (ModelState.IsValid)
             {
                 try
                 {
@@ -216,12 +239,9 @@ namespace ProjectManagement.Controllers
                         ticket.Name= ticketVM.Name;
                         ticket.Description= ticketVM.Description;
                     }
-                    var Status = await _context.Statuses.FindAsync(ticketVM.SelectedStatusId);
-                    if (Status != null) 
-                    {
-						ticket.Status = Status;
-					}
-                    await _repository.Update(ticket);
+                   
+					ticket.Status = Status;
+					await _repository.Update(ticket);
                 }
                 catch (DbUpdateConcurrencyException)
                 {
@@ -279,5 +299,30 @@ namespace ProjectManagement.Controllers
 
             return RedirectToAction(nameof(Index));
         }
+
+		[HttpPost]
+		public async Task<StatusCodeResult> EditTicketStatus(Guid? id,[FromBody] string selectedStatus)
+        {
+			Ticket ticket = await _repository.FindById(id);
+			var status = _context.Statuses.FirstOrDefault(s => s.Name == selectedStatus);
+            
+            if (id ==null ||ticket == null || status == null)
+            {
+				return BadRequest();
+			}
+
+            try
+            {
+				ticket.Status = status;
+				await _repository.Update(ticket);
+                return Ok();
+			}
+            catch (Exception)
+            {
+
+				return NotFound() ;
+			}
+		}
+
     }
 }

@@ -1,0 +1,10 @@
+{
+  "version": "1.0",
+  "defaultProvider": "cdnjs",
+  "libraries": [
+    {
+      "library": "dragula@3.7.3",
+      "destination": "wwwroot/lib/dragula/"
+    }
+  ]
+}
