@@ -1,10 +1,13 @@
-﻿using Microsoft.AspNetCore.Authorization;
+﻿using AutoMapper;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using ProjectManagement.Contracts;
 using ProjectManagement.Data;
 using ProjectManagement.Models;
 using ProjectManagement.viewModels;
+using System.Collections;
+using System.Collections.Generic;
 using System.Net;
 using System.Security.Claims;
 
@@ -17,13 +20,21 @@ namespace ProjectManagement.Controllers
         private readonly ITicketRepository _repository;
         private readonly IProjectRepository _projectRepository;
         private readonly IDeveloperRepository _developerRepository;
+		private readonly IMapper _mapper;
 
-        public TicketsController(ApplicationDbContext context, ITicketRepository repository, IProjectRepository projectRepository, IDeveloperRepository developerRepository)
+		public TicketsController(
+            ApplicationDbContext context, 
+            ITicketRepository repository, 
+            IProjectRepository projectRepository, 
+            IDeveloperRepository developerRepository,
+            IMapper mapper
+            )
         {
             _context = context;
             _repository = repository;
             _projectRepository = projectRepository;
 			_developerRepository = developerRepository;
+            _mapper = mapper;
         }
 
         // GET: Tickets
@@ -49,29 +60,15 @@ namespace ProjectManagement.Controllers
 
 				}
 
-                
-				
-				List<TicketIndexVM> TicketsVM = new List<TicketIndexVM>();
-				foreach (var ticket in tickes)
-				{
-					TicketIndexVM ticketVM = new TicketIndexVM();
-					ticketVM.Id = ticket.Id;
-                    ticketVM.Name = ticket.Name;
-					ticketVM.CreatedAt = ticket.CreatedAt;
-					ticketVM.ModifiedAt = ticket.ModifiedAt;
-					ticketVM.Status = ticket.Status?.Name;
-                    ticketVM.Project = ticket.Project?.Name;
-                    ticketVM.Developer = $"{ticket.AssignedTo?.FirstName} {ticket.AssignedTo?.LastName}"  ;
+                List<TicketIndexVM> ticketsVM = _mapper.Map<List<TicketIndexVM>>(tickes);
 
-					TicketsVM.Add(ticketVM);
-				}
                 if (isAdmin)
                 {
-					return View(TicketsVM);
+					return View(ticketsVM);
 				}
                 else
                 {
-                    return View("DeveloperIndex",TicketsVM);
+                    return View("DeveloperIndex", ticketsVM);
                 }
             }
         }
@@ -91,19 +88,7 @@ namespace ProjectManagement.Controllers
                 return NotFound();
             }
 
-            TicketDetailsVM ticketVM = new TicketDetailsVM();
-			ticketVM.Id = ticket.Id;
-			ticketVM.Name = ticket.Name;
-			ticketVM.Description = ticket.Description;
-			ticketVM.CreatedAt = ticket.CreatedAt;
-			ticketVM.ModifiedAt = ticket.ModifiedAt;
-			ticketVM.Status = ticket.Status?.Name;
-            if (ticket.Project != null) 
-            {
-				ticketVM.Project = new ProjectBaseVM() {Id = ticket.Project.Id,Name=ticket.Project.Name } ;
-			}
-			ticketVM.Developer = ticketVM.Developer = $"{ticket.AssignedTo?.FirstName} {ticket.AssignedTo?.LastName}"; ;
-
+			TicketDetailsVM ticketVM = _mapper.Map<TicketDetailsVM>(ticket);
 			return View(ticketVM);
         }
 
@@ -111,20 +96,13 @@ namespace ProjectManagement.Controllers
 		[Authorize(Roles = ("Administrator"))]
 		public async Task<IActionResult> Create()
         {
-            TicketCreateVM ticketVM = new TicketCreateVM();
-            var projects = await _projectRepository.FindAll();
-            var developers = await _developerRepository.FindAll();
-            projects.ToList().ForEach(project => ticketVM.Projects?.Add(new ProjectBaseVM() {Id=project.Id, Name=project.Name }));
-			developers.
-                ToList().
-                ForEach(developer => ticketVM.Developers?.Add(
-                            new DeveloperBaseVM() 
-                                { 
-                                    Id= Guid.Parse(developer.Id), 
-                                    FullName= $"{developer.FirstName} {developer.LastName}" 
-                                }));
+			ICollection<Project> projects = await _projectRepository.FindAll();
+			ICollection<ApplicationUser> developers = await _developerRepository.FindAll();
+			TicketCreateVM ticketVM = new TicketCreateVM();
+            ticketVM.Projects = _mapper.Map<ICollection<Project>,List<ProjectBaseVM>>(projects);
+            ticketVM.Developers = _mapper.Map<ICollection<ApplicationUser>, List<DeveloperBaseVM>>(developers);
 
-            return View(ticketVM);
+			return View(ticketVM);
         }
 
 		// POST: Tickets/Create
@@ -133,30 +111,21 @@ namespace ProjectManagement.Controllers
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> Create(TicketCreateVM ticketVM)
         {
-			var projects = await _projectRepository.FindAll();
-			var developers = await _developerRepository.FindAll();
-			projects.ToList().ForEach(project => ticketVM.Projects?.Add(new ProjectBaseVM() { Id = project.Id, Name = project.Name }));
-			developers.
-				ToList().
-				ForEach(developer => ticketVM.Developers?.Add(
-							new DeveloperBaseVM()
-							{
-								Id = Guid.Parse(developer.Id),
-								FullName = $"{developer.FirstName} {developer.LastName}"
-							}));
+			ICollection<Project> projects = await _projectRepository.FindAll();
+			ICollection<ApplicationUser> developers = await _developerRepository.FindAll();
+			ticketVM.Projects = _mapper.Map<ICollection<Project>, List<ProjectBaseVM>>(projects);
+			ticketVM.Developers = _mapper.Map<ICollection<ApplicationUser>, List<DeveloperBaseVM>>(developers);
 
 			if (ModelState.IsValid)
             {
                 ApplicationUser developer = await _developerRepository.FindById(ticketVM.SelectedDeveloperId);
                 Project project = await _projectRepository.FindById(ticketVM.SelectedProjectId);
 				Status status = _context.Statuses.First(s => s.Name == "Pending");
-				Ticket ticket = new Ticket();
-                ticket.Name = ticketVM.Name;
-                ticket.Project = project;
-                ticket.AssignedTo = developer;
+                Ticket ticket = _mapper.Map<Ticket>(ticketVM);
                 ticket.Status = status;
-                ticket.Description = ticketVM.Description;
-                await _repository.Create(ticket);
+				ticket.AssignedTo = developer;
+				ticket.Project = project;
+				await _repository.Create(ticket);
                 return RedirectToAction(nameof(Index));
             }
             return View(ticketVM);
@@ -170,29 +139,21 @@ namespace ProjectManagement.Controllers
                 return NotFound();
             }
 
-            var ticket = await _context.Tickets.Include("Project").Include("AssignedTo").Include("Status").FirstOrDefaultAsync(t => t.Id == id);
+            var ticket = await _repository.FindById(id);
             if (ticket == null)
             {
                 return NotFound();
             }
+            ICollection<Project> projects = await _projectRepository.FindAll();
+			ICollection<ApplicationUser> developers = await _developerRepository.FindAll();
+			ICollection<Status> statuses = await _context.Statuses.ToListAsync();
+			
+            TicketEditVM ticketVM = _mapper.Map<TicketEditVM>(ticket);
+            ticketVM.Projects = _mapper.Map<ICollection<Project>, List<ProjectBaseVM>>(projects);
+            ticketVM.Developers = _mapper.Map<ICollection<ApplicationUser>, List<DeveloperBaseVM>>(developers);
+            ticketVM.Statuses = _mapper.Map<ICollection<Status>, List<StatusBaseVM>>(statuses);
 
-            TicketEditVM ticketVM = new TicketEditVM();
-            ticketVM.Id = ticket.Id;
-            ticketVM.Name = ticket.Name;
-			ticketVM.Description = ticket.Description;
-            var projects = await _projectRepository.FindAll();
-            var developers = await _developerRepository.FindAll(); 
-            var statuses = await _context.Statuses.ToListAsync();
-
-			projects.ToList().ForEach(project => ticketVM.Projects?.Add(new ProjectBaseVM() { Id=project.Id,Name=project.Name }));
-			developers.ToList().ForEach(user => ticketVM.Developers?.Add(new DeveloperBaseVM() { Id = Guid.Parse(user.Id), FullName= $"{user.FirstName} {user.LastName}" }));
-            statuses.ForEach(status => ticketVM.Statuses?.Add(new StatusBaseVM() { Id = status.Id, Name = status.Name }));
-
-			ticketVM.SelectedProjectId = ticket.Project.Id;
-            ticketVM.SelectedDeveloperId = Guid.Parse(ticket.AssignedTo.Id);
-            ticketVM.SelectedStatusId = ticket.Status.Id;
-
-			bool isAdmin = User.IsInRole("Administrator");
+            bool isAdmin = User.IsInRole("Administrator");
 
 			if (isAdmin)
             {
@@ -214,13 +175,13 @@ namespace ProjectManagement.Controllers
                 return NotFound();
             }
 
-			var projects = await _projectRepository.FindAll();
-			var developers = await _developerRepository.FindAll();
-			var statuses = await _context.Statuses.ToListAsync();
+			ICollection<Project> projects  = await _projectRepository.FindAll();
+			ICollection<ApplicationUser> developers = await _developerRepository.FindAll();
+			ICollection<Status> statuses = await _context.Statuses.ToListAsync();
 
-			projects.ToList().ForEach(project => ticketVM.Projects?.Add(new ProjectBaseVM() { Id = project.Id, Name = project.Name }));
-			developers.ToList().ForEach(user => ticketVM.Developers?.Add(new DeveloperBaseVM() { Id = Guid.Parse(user.Id), FullName = $"{user.FirstName} {user.LastName}" }));
-			statuses.ForEach(status => ticketVM.Statuses?.Add(new StatusBaseVM() { Id = status.Id, Name = status.Name }));
+			ticketVM.Projects = _mapper.Map<ICollection<Project>, List<ProjectBaseVM>>(projects);
+			ticketVM.Developers = _mapper.Map<ICollection<ApplicationUser>, List<DeveloperBaseVM>>(developers);
+			ticketVM.Statuses = _mapper.Map<ICollection<Status>, List<StatusBaseVM>>(statuses);
 
 			var Status = await _context.Statuses.FindAsync(ticketVM.SelectedStatusId);
 
@@ -269,9 +230,7 @@ namespace ProjectManagement.Controllers
             }
 
             var ticket = await _repository.FindById(id);
-			TicketBaseVM ticketVM = new TicketBaseVM();
-			ticketVM.Id = ticket.Id;
-            ticketVM.Name = ticket.Name;
+            TicketBaseVM ticketVM = _mapper.Map<TicketBaseVM>(ticket);
 			if (ticket == null)
             {
                 return NotFound();

@@ -1,4 +1,5 @@
-﻿using Microsoft.AspNetCore.Authorization;
+﻿using AutoMapper;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using ProjectManagement.Contracts;
@@ -14,11 +15,20 @@ namespace ProjectManagement.Controllers
         private readonly ApplicationDbContext _context;
         private readonly IProjectRepository _repository;
         private readonly ITicketRepository _ticketRepository;
-        public ProjectsController(ApplicationDbContext context, IProjectRepository repository,ITicketRepository ticketRepository)
+        private readonly IMapper _mapper;
+
+        public ProjectsController 
+            (
+            ApplicationDbContext context, 
+            IProjectRepository repository,
+            ITicketRepository ticketRepository, 
+            IMapper mapper
+            )
         {
             _context = context;
             _repository = repository;
             _ticketRepository = ticketRepository;
+            _mapper = mapper;
         }
 
         // GET: Projects
@@ -32,19 +42,8 @@ namespace ProjectManagement.Controllers
             else
             {
 				ICollection<Project> projects = await _repository.FindAll();
-				List<ProjectIndexVM> projectsVM = new List<ProjectIndexVM>();
-				foreach (var project in projects)
-				{
-					ProjectIndexVM projectVM = new ProjectIndexVM();
-					projectVM.Id=project.Id;
-                    projectVM.Name = project.Name;
-					projectVM.CreatedAt = project.CreatedAt;
-					projectVM.ModifiedAt = project.ModifiedAt;
-					projectVM.Status = project.Status.Name;
-					projectsVM.Add(projectVM);
-				}
-
-                return View(projectsVM.AsEnumerable());
+                List<ProjectIndexVM> projectsVM = _mapper.Map<List<ProjectIndexVM>>(projects);
+                return View(projectsVM);
             }
         }
 
@@ -63,43 +62,15 @@ namespace ProjectManagement.Controllers
                 return NotFound();
             }
 
-            ProjectDetailsVM projectVM = new ProjectDetailsVM();
-			projectVM.Name=  project.Name;
-			projectVM.Status = project.Status.Name;
-            List<TicketProjectVM> ticketDetailsVMs = new List<TicketProjectVM>();
-
-            project.Tickets.ForEach(t =>
+			ProjectDetailsVM projectVM = _mapper.Map<ProjectDetailsVM>(project);
+            projectVM.Tickets = await _mapper.ProjectTo<TicketProjectVM>(_context.Tickets).ToListAsync();
+            projectVM.Tickets.ForEach(ticket =>
             {
-
-                var relatedTask = _context.Tickets.Include("Status").Include("AssignedTo").FirstOrDefault(x => x.Id == t.Id);
-
-                if (relatedTask != null)
+                if (ticket.Developer != null)
                 {
-                    var ticketVM = new TicketProjectVM()
-                    {
-                        Id = relatedTask.Id,
-                        Name = relatedTask.Name,
-                        Status = relatedTask.Status.Name
-                    };
-
-					if (t.AssignedTo != null) 
-                    {
-						var developer = new DeveloperBaseVM()
-						{
-							Id = Guid.Parse(t.AssignedTo.Id),
-							UserName = t.AssignedTo.UserName,
-                            FullName = $"{t.AssignedTo.FirstName} {t.AssignedTo.LastName}"
-						};
-						projectVM.Developers.Add(developer);
-                        ticketVM.Developer = developer;
-					}; 
-
-					ticketDetailsVMs.Add(ticketVM);
-				}
+                    projectVM.Developers.Add(ticket.Developer);
+                }
             });
-
-			projectVM.Tickets = ticketDetailsVMs;
-
 
             return View(projectVM);
         }
@@ -121,14 +92,10 @@ namespace ProjectManagement.Controllers
             if (ModelState.IsValid)
             {
 				Status status = _context.Statuses.First(s => s.Name == "Unassigned");
-				
-                Project project = new Project();
-                project.Id = Guid.NewGuid();
-                project.Name= projectVM.Name;
-                project.CreatedAt = DateTime.Now;
-                project.ModifiedAt = DateTime.Now;
-                project.Status = status;
-                await _repository.Create(project);
+
+                Project project = _mapper.Map<Project>(projectVM);
+				project.Status = status;
+				await _repository.Create(project);
                 
                 return RedirectToAction(nameof(Index));
             }
@@ -148,15 +115,9 @@ namespace ProjectManagement.Controllers
             {
                 return NotFound();
             }
-
-			ProjectEditVM projectVM = new ProjectEditVM();
-            projectVM.Id = project.Id;
-            projectVM.Name = project.Name;
-
-			_context.Statuses.ToList().ForEach(status => projectVM.Statuses.Add(new StatusBaseVM() { Id = status.Id, Name= status.Name }));
-            projectVM.SelectedStatusId = project.Status.Id;
-
-            return View(projectVM);
+            ProjectEditVM projectVM = _mapper.Map<ProjectEditVM>(project);
+            projectVM.Statuses = await _mapper.ProjectTo<StatusBaseVM>(_context.Statuses).ToListAsync();
+			return View(projectVM);
         }
 
         // POST: Projects/Edit/5
@@ -168,17 +129,15 @@ namespace ProjectManagement.Controllers
             {
                 return NotFound();
             }
-			var statues = await _context.Statuses.ToListAsync();
-			statues.ForEach(status => projectVM.Statuses.Add(new StatusBaseVM() { Id = status.Id, Name = status.Name }));
-			
+            var statues = await _context.Statuses.ToListAsync();
+			projectVM.Statuses = _mapper.Map<List<Status>,List<StatusBaseVM>>(statues);
 
-			if (ModelState.IsValid)
+            if (ModelState.IsValid)
             {
                 try
                 {
                     Project project = await _repository.FindById(id);
-					var status = statues.FirstOrDefault(s => s.Id == projectVM.SelectedStatusId);
-					project.Status = status;
+                    project.Status = statues.FirstOrDefault(s => s.Id == projectVM.SelectedStatusId);
 					await _repository.Update(project);
                 }
                 catch (DbUpdateConcurrencyException)
@@ -212,9 +171,9 @@ namespace ProjectManagement.Controllers
                 return NotFound();
             }
 
-			ProjectBaseVM projectBaseVM = new ProjectBaseVM();
-            projectBaseVM.Name = project.Name;
-			return View(projectBaseVM);
+            ProjectBaseVM projectBaseVM = _mapper.Map<ProjectBaseVM>(project);
+
+            return View(projectBaseVM);
         }
 
         // POST: Projects/Delete/5
