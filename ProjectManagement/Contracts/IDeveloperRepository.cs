@@ -5,7 +5,7 @@ namespace ProjectManagement.Contracts
     public interface IDeveloperRepository
     {
 		Task<ICollection<ApplicationUser>> FindAll();
-		Task<ApplicationUser> FindById(Guid id);
+		Task<ApplicationUser> FindById(string id);
 
 	}
 }

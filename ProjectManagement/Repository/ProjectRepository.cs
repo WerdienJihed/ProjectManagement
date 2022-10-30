@@ -20,7 +20,7 @@ namespace ProjectManagement.Repository
 			return await _context.Projects.Include("Status").ToListAsync();
 		}
 
-		public async Task<Project> FindById(Guid? id)
+		public async Task<Project> FindById(string? id)
 		{
 			return await _context.Projects.Include("Status").Include("Tickets").FirstAsync(t=>t.Id == id);
 		}
@@ -42,7 +42,7 @@ namespace ProjectManagement.Repository
 			return await Save();
 		}
 
-		public async Task<bool> Exists(Guid id)
+		public async Task<bool> Exists(string id)
 		{
 			return await _context.Projects.AnyAsync(t => t.Id == id);
 		}

@@ -6,9 +6,6 @@ using ProjectManagement.Contracts;
 using ProjectManagement.Data;
 using ProjectManagement.Models;
 using ProjectManagement.viewModels;
-using System.Collections;
-using System.Collections.Generic;
-using System.Net;
 using System.Security.Claims;
 
 namespace ProjectManagement.Controllers
@@ -75,7 +72,7 @@ namespace ProjectManagement.Controllers
 
 		// GET: Tickets/Details/5
 		[Authorize(Roles=("Administrator"))]
-		public async Task<IActionResult> Details(Guid? id)
+		public async Task<IActionResult> Details(string? id)
         {
             if (id == null || _context.Tickets == null)
             {
@@ -98,10 +95,12 @@ namespace ProjectManagement.Controllers
         {
 			ICollection<Project> projects = await _projectRepository.FindAll();
 			ICollection<ApplicationUser> developers = await _developerRepository.FindAll();
+            ICollection<Priority> priorities = await _context.Priorities.ToListAsync();
+
 			TicketCreateVM ticketVM = new TicketCreateVM();
             ticketVM.Projects = _mapper.Map<ICollection<Project>,List<ProjectBaseVM>>(projects);
             ticketVM.Developers = _mapper.Map<ICollection<ApplicationUser>, List<DeveloperBaseVM>>(developers);
-
+            ticketVM.Priorities = _mapper.Map<ICollection<Priority>,List<PriorityBaseVM>>(priorities);
 			return View(ticketVM);
         }
 
@@ -113,18 +112,23 @@ namespace ProjectManagement.Controllers
         {
 			ICollection<Project> projects = await _projectRepository.FindAll();
 			ICollection<ApplicationUser> developers = await _developerRepository.FindAll();
+            ICollection<Priority> priorities = await _context.Priorities.ToListAsync();
+
 			ticketVM.Projects = _mapper.Map<ICollection<Project>, List<ProjectBaseVM>>(projects);
 			ticketVM.Developers = _mapper.Map<ICollection<ApplicationUser>, List<DeveloperBaseVM>>(developers);
+            ticketVM.Priorities = _mapper.Map<ICollection<Priority>, List<PriorityBaseVM>>(priorities);
 
 			if (ModelState.IsValid)
             {
                 ApplicationUser developer = await _developerRepository.FindById(ticketVM.SelectedDeveloperId);
                 Project project = await _projectRepository.FindById(ticketVM.SelectedProjectId);
+				Priority? priority = await _context.Priorities.FindAsync(ticketVM.SelectedPriorityId);
 				Status status = _context.Statuses.First(s => s.Name == "Pending");
                 Ticket ticket = _mapper.Map<Ticket>(ticketVM);
                 ticket.Status = status;
 				ticket.AssignedTo = developer;
 				ticket.Project = project;
+                ticket.Priority = priority;
 				await _repository.Create(ticket);
                 return RedirectToAction(nameof(Index));
             }
@@ -132,7 +136,7 @@ namespace ProjectManagement.Controllers
         }
 
         // GET: Tickets/Edit/5
-        public async Task<IActionResult> Edit(Guid? id)
+        public async Task<IActionResult> Edit(string? id)
         {
             if (id == null || _context.Tickets == null)
             {
@@ -147,13 +151,16 @@ namespace ProjectManagement.Controllers
             ICollection<Project> projects = await _projectRepository.FindAll();
 			ICollection<ApplicationUser> developers = await _developerRepository.FindAll();
 			ICollection<Status> statuses = await _context.Statuses.ToListAsync();
-			
-            TicketEditVM ticketVM = _mapper.Map<TicketEditVM>(ticket);
+			ICollection<Priority> priorities = await _context.Priorities.ToListAsync();
+
+			TicketEditVM ticketVM = _mapper.Map<TicketEditVM>(ticket);
             ticketVM.Projects = _mapper.Map<ICollection<Project>, List<ProjectBaseVM>>(projects);
             ticketVM.Developers = _mapper.Map<ICollection<ApplicationUser>, List<DeveloperBaseVM>>(developers);
             ticketVM.Statuses = _mapper.Map<ICollection<Status>, List<StatusBaseVM>>(statuses);
+			ticketVM.Priorities = _mapper.Map<ICollection<Priority>, List<PriorityBaseVM>>(priorities);
 
-            bool isAdmin = User.IsInRole("Administrator");
+
+			bool isAdmin = User.IsInRole("Administrator");
 
 			if (isAdmin)
             {
@@ -168,7 +175,7 @@ namespace ProjectManagement.Controllers
         // POST: Tickets/Edit/5
         [HttpPost]
         [ValidateAntiForgeryToken]
-        public async Task<IActionResult> Edit(Guid id, TicketEditVM ticketVM)
+        public async Task<IActionResult> Edit(string id, TicketEditVM ticketVM)
         {
             if (id != ticketVM.Id)
             {
@@ -178,12 +185,20 @@ namespace ProjectManagement.Controllers
 			ICollection<Project> projects  = await _projectRepository.FindAll();
 			ICollection<ApplicationUser> developers = await _developerRepository.FindAll();
 			ICollection<Status> statuses = await _context.Statuses.ToListAsync();
+			ICollection<Priority> priorities = await _context.Priorities.ToListAsync();
 
 			ticketVM.Projects = _mapper.Map<ICollection<Project>, List<ProjectBaseVM>>(projects);
 			ticketVM.Developers = _mapper.Map<ICollection<ApplicationUser>, List<DeveloperBaseVM>>(developers);
 			ticketVM.Statuses = _mapper.Map<ICollection<Status>, List<StatusBaseVM>>(statuses);
+			ticketVM.Priorities = _mapper.Map<ICollection<Priority>, List<PriorityBaseVM>>(priorities);
 
-			var Status = await _context.Statuses.FindAsync(ticketVM.SelectedStatusId);
+			Status? status = await _context.Statuses.FindAsync(ticketVM.SelectedStatusId);
+			Priority? priority = await _context.Priorities.FindAsync(ticketVM.SelectedPriorityId);
+
+            if (status == null)
+            {
+                throw new Exception("Status not found in database");
+            }
 
 			if (ModelState.IsValid)
             {
@@ -195,13 +210,14 @@ namespace ProjectManagement.Controllers
                     {
 					    var project = await _projectRepository.FindById(ticketVM.SelectedProjectId);
                         var AssignedTo = await _developerRepository.FindById(ticketVM.SelectedDeveloperId);
-                        ticket.Project = project;
-                        ticket.AssignedTo = AssignedTo;
                         ticket.Name= ticketVM.Name;
                         ticket.Description= ticketVM.Description;
-                    }
+                        ticket.Project = project;
+                        ticket.AssignedTo = AssignedTo;
+                        ticket.Priority = priority;
+					}
                    
-					ticket.Status = Status;
+					ticket.Status = status;
 					await _repository.Update(ticket);
                 }
                 catch (DbUpdateConcurrencyException)
@@ -222,7 +238,7 @@ namespace ProjectManagement.Controllers
 
 		// GET: Tickets/Delete/5
 		[Authorize(Roles = ("Administrator"))]
-		public async Task<IActionResult> Delete(Guid? id)
+		public async Task<IActionResult> Delete(string? id)
         {
             if (id == null || _context.Tickets == null)
             {
@@ -243,7 +259,7 @@ namespace ProjectManagement.Controllers
 		[Authorize(Roles = ("Administrator"))]
 		[HttpPost, ActionName("Delete")]
         [ValidateAntiForgeryToken]
-        public async Task<IActionResult> DeleteConfirmed(Guid id)
+        public async Task<IActionResult> DeleteConfirmed(string id)
         {
             if (_context.Tickets == null)
             {
@@ -260,7 +276,7 @@ namespace ProjectManagement.Controllers
         }
 
 		[HttpPost]
-		public async Task<StatusCodeResult> EditTicketStatus(Guid? id,[FromBody] string selectedStatus)
+		public async Task<StatusCodeResult> EditTicketStatus(string? id,[FromBody] string selectedStatus)
         {
 			Ticket ticket = await _repository.FindById(id);
 			var status = _context.Statuses.FirstOrDefault(s => s.Name == selectedStatus);

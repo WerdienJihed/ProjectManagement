@@ -1,5 +1,4 @@
 ﻿using AutoMapper;
-using Microsoft.EntityFrameworkCore;
 using ProjectManagement.Models;
 using ProjectManagement.viewModels;
 

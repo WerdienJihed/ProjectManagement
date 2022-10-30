@@ -3,6 +3,7 @@ using System;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Metadata;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using ProjectManagement.Data;
 
@@ -11,9 +12,10 @@ using ProjectManagement.Data;
 namespace ProjectManagement.Migrations
 {
     [DbContext(typeof(ApplicationDbContext))]
-    partial class ApplicationDbContextModelSnapshot : ModelSnapshot
+    [Migration("20221030152423_init")]
+    partial class init
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -52,14 +54,14 @@ namespace ProjectManagement.Migrations
                         new
                         {
                             Id = "989c13c2-05a1-471b-abe4-1aecf8485887",
-                            ConcurrencyStamp = "1c7b5de2-aa3b-44e2-9ab7-b5739adf1ce0",
+                            ConcurrencyStamp = "e9011710-8b18-41de-9ab1-ff91b44eaedb",
                             Name = "Administrator",
                             NormalizedName = "ADMINISTRATOR"
                         },
                         new
                         {
                             Id = "2bb80575-a02f-45e3-9504-1f225cbf237e",
-                            ConcurrencyStamp = "dd890989-3bb8-44c9-aff0-4ed3581155c6",
+                            ConcurrencyStamp = "8ad4fe42-2729-49b3-96c7-f4aa88427ca7",
                             Name = "Developer",
                             NormalizedName = "DEVELOPER"
                         });
@@ -263,42 +265,6 @@ namespace ProjectManagement.Migrations
                     b.ToTable("AspNetUserTokens", (string)null);
                 });
 
-            modelBuilder.Entity("ProjectManagement.Models.Priority", b =>
-                {
-                    b.Property<string>("Id")
-                        .HasColumnType("nvarchar(450)");
-
-                    b.Property<string>("Name")
-                        .IsRequired()
-                        .HasColumnType("nvarchar(max)");
-
-                    b.HasKey("Id");
-
-                    b.ToTable("Priority", (string)null);
-
-                    b.HasData(
-                        new
-                        {
-                            Id = "c646bac9-3b96-4635-b7a6-68e1da239c51\r\n",
-                            Name = "Low"
-                        },
-                        new
-                        {
-                            Id = "356e0f04-b5c1-48d1-9d6c-1bcb044d695b\r\n",
-                            Name = "Medium"
-                        },
-                        new
-                        {
-                            Id = "02d32d4a-9f98-4474-bf9f-15feee52445f\r\n",
-                            Name = "High"
-                        },
-                        new
-                        {
-                            Id = "61867ccb-f44a-4c89-a025-5fc0140894d0\r\n",
-                            Name = "Urgent"
-                        });
-                });
-
             modelBuilder.Entity("ProjectManagement.Models.Project", b =>
                 {
                     b.Property<string>("Id")
@@ -388,10 +354,6 @@ namespace ProjectManagement.Migrations
                         .IsRequired()
                         .HasColumnType("nvarchar(max)");
 
-                    b.Property<string>("PriorityId")
-                        .IsRequired()
-                        .HasColumnType("nvarchar(450)");
-
                     b.Property<string>("ProjectId")
                         .IsRequired()
                         .HasColumnType("nvarchar(450)");
@@ -403,8 +365,6 @@ namespace ProjectManagement.Migrations
                     b.HasKey("Id");
 
                     b.HasIndex("AssignedToId");
-
-                    b.HasIndex("PriorityId");
 
                     b.HasIndex("ProjectId");
 
@@ -432,15 +392,15 @@ namespace ProjectManagement.Migrations
                         {
                             Id = "89c4435a-6986-4995-b514-2aec9af0ac3f",
                             AccessFailedCount = 0,
-                            ConcurrencyStamp = "9828aba1-d0e1-402a-b4e3-d96d2590168f",
+                            ConcurrencyStamp = "0dac7437-bd1a-4581-bc23-467d098f039a",
                             Email = "admin@gmail.com",
                             EmailConfirmed = true,
                             LockoutEnabled = false,
                             NormalizedEmail = "ADMIN@GMAIL.COM",
                             NormalizedUserName = "ADMIN@GMAIL.COM",
-                            PasswordHash = "AQAAAAEAACcQAAAAEASfTqtbfJandGm7RMmuVIsjK+K9o/AK/lOHhWWLx/a9MZvKpI+9MMQbSO3rfYl7yQ==",
+                            PasswordHash = "AQAAAAEAACcQAAAAEJttFFKwUmJEyhDL6IbjQUJY0szxKbXqBqxVsqa2s4cWw8/cCJC2p0d7jzlr0X1VGg==",
                             PhoneNumberConfirmed = false,
-                            SecurityStamp = "1545969d-77b9-4cf7-a8a0-454e8b6ccdfe",
+                            SecurityStamp = "d34d8c2e-2ada-49fb-8876-c2b1c416da87",
                             TwoFactorEnabled = false,
                             UserName = "admin@gmail.com",
                             FirstName = "Admin",
@@ -450,15 +410,15 @@ namespace ProjectManagement.Migrations
                         {
                             Id = "5393722f-d39e-4bb1-8a5e-9641e3ce4a25",
                             AccessFailedCount = 0,
-                            ConcurrencyStamp = "484e9842-738d-4bfe-b287-344017af26a7",
+                            ConcurrencyStamp = "824560d8-a95f-48ad-ab8c-91f26d0b3841",
                             Email = "Nancy@gmail.com",
                             EmailConfirmed = true,
                             LockoutEnabled = false,
                             NormalizedEmail = "Nancy@GMAIL.COM",
                             NormalizedUserName = "NANCY@GMAIL.COM",
-                            PasswordHash = "AQAAAAEAACcQAAAAEH6T1fmj+Yr5HAupp2iZR5rkHMEdUIMfpmSpRXmMUJnlCkoi1vJJcnbJXRP0/uq6kw==",
+                            PasswordHash = "AQAAAAEAACcQAAAAEHgJG0pNvcWiJZ+CBwcXpyPv2cv1HFQ7a80TM5RIrYDXsQWQj+NOGhn1t+LWLbHjIw==",
                             PhoneNumberConfirmed = false,
-                            SecurityStamp = "262349cd-c377-412d-b270-6083c200fbe1",
+                            SecurityStamp = "2c0ac15d-360d-4b95-8c44-52cfa003e0c7",
                             TwoFactorEnabled = false,
                             UserName = "Nancy@gmail.com",
                             FirstName = "Nancy",
@@ -468,15 +428,15 @@ namespace ProjectManagement.Migrations
                         {
                             Id = "6d91481c-2946-4b3d-9117-072c4953475e",
                             AccessFailedCount = 0,
-                            ConcurrencyStamp = "057cb934-2a22-4cbf-9e83-ee5e1f9765c5",
+                            ConcurrencyStamp = "a7a69ba7-469e-4b90-9678-cf7a8ad01571",
                             Email = "Joseph@gmail.com",
                             EmailConfirmed = true,
                             LockoutEnabled = false,
                             NormalizedEmail = "JOSEPH@GMAIL.COM",
                             NormalizedUserName = "JOSEPH@GMAIL.COM",
-                            PasswordHash = "AQAAAAEAACcQAAAAEGiZ0mUEzaYkWFBxo7A98OOtyoLLRo2UDqgY6s2sVhZpgvDDPS75PoKxUKBVe/cgkw==",
+                            PasswordHash = "AQAAAAEAACcQAAAAELxhQcqv2igG/MTC2d2ReQttqGGowznZ46qcDS1eRt3hFPWprvjH2k8Co04tIhxIDA==",
                             PhoneNumberConfirmed = false,
-                            SecurityStamp = "958d72aa-d7cc-4afa-8383-e0aac36b5666",
+                            SecurityStamp = "a46f3eb2-907c-411f-a984-0e40666b24d4",
                             TwoFactorEnabled = false,
                             UserName = "Joseph@gmail.com",
                             FirstName = "Joseph",
@@ -554,12 +514,6 @@ namespace ProjectManagement.Migrations
                         .OnDelete(DeleteBehavior.Restrict)
                         .IsRequired();
 
-                    b.HasOne("ProjectManagement.Models.Priority", "Priority")
-                        .WithMany("Tickets")
-                        .HasForeignKey("PriorityId")
-                        .OnDelete(DeleteBehavior.Restrict)
-                        .IsRequired();
-
                     b.HasOne("ProjectManagement.Models.Project", "Project")
                         .WithMany("Tickets")
                         .HasForeignKey("ProjectId")
@@ -574,16 +528,9 @@ namespace ProjectManagement.Migrations
 
                     b.Navigation("AssignedTo");
 
-                    b.Navigation("Priority");
-
                     b.Navigation("Project");
 
                     b.Navigation("Status");
-                });
-
-            modelBuilder.Entity("ProjectManagement.Models.Priority", b =>
-                {
-                    b.Navigation("Tickets");
                 });
 
             modelBuilder.Entity("ProjectManagement.Models.Project", b =>

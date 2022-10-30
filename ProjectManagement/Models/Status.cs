@@ -1,11 +1,15 @@
-﻿namespace ProjectManagement.Models
+﻿using System.ComponentModel.DataAnnotations;
+
+namespace ProjectManagement.Models
 {
-    #nullable disable
 	public class Status
-    {
-        public Guid Id { get; set; }
-        public string Name { get; set; }
-        public ICollection<Project> Projects{ get; set; } = new List<Project>();
-        public ICollection<Ticket> Tickets { get; set; } = new List<Ticket>();
-    }
+	{
+		[Key]
+		public string Id { get; set; } = null!;
+		[Required]
+		public string Name { get; set; } = null!;
+		public ICollection<Project> Projects { get; set; } = new List<Project>();
+		public ICollection<Ticket> Tickets { get; set; } = new List<Ticket>();
+
+	}
 }

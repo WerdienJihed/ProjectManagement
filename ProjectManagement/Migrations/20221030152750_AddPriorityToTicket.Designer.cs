@@ -3,6 +3,7 @@ using System;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Metadata;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using ProjectManagement.Data;
 
@@ -11,9 +12,10 @@ using ProjectManagement.Data;
 namespace ProjectManagement.Migrations
 {
     [DbContext(typeof(ApplicationDbContext))]
-    partial class ApplicationDbContextModelSnapshot : ModelSnapshot
+    [Migration("20221030152750_AddPriorityToTicket")]
+    partial class AddPriorityToTicket
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -52,14 +54,14 @@ namespace ProjectManagement.Migrations
                         new
                         {
                             Id = "989c13c2-05a1-471b-abe4-1aecf8485887",
-                            ConcurrencyStamp = "1c7b5de2-aa3b-44e2-9ab7-b5739adf1ce0",
+                            ConcurrencyStamp = "16d71f76-ab95-4245-ab5f-82beabc77a6b",
                             Name = "Administrator",
                             NormalizedName = "ADMINISTRATOR"
                         },
                         new
                         {
                             Id = "2bb80575-a02f-45e3-9504-1f225cbf237e",
-                            ConcurrencyStamp = "dd890989-3bb8-44c9-aff0-4ed3581155c6",
+                            ConcurrencyStamp = "2e030bc7-d2dd-452b-9f2b-464d785ebaf9",
                             Name = "Developer",
                             NormalizedName = "DEVELOPER"
                         });
@@ -274,29 +276,7 @@ namespace ProjectManagement.Migrations
 
                     b.HasKey("Id");
 
-                    b.ToTable("Priority", (string)null);
-
-                    b.HasData(
-                        new
-                        {
-                            Id = "c646bac9-3b96-4635-b7a6-68e1da239c51\r\n",
-                            Name = "Low"
-                        },
-                        new
-                        {
-                            Id = "356e0f04-b5c1-48d1-9d6c-1bcb044d695b\r\n",
-                            Name = "Medium"
-                        },
-                        new
-                        {
-                            Id = "02d32d4a-9f98-4474-bf9f-15feee52445f\r\n",
-                            Name = "High"
-                        },
-                        new
-                        {
-                            Id = "61867ccb-f44a-4c89-a025-5fc0140894d0\r\n",
-                            Name = "Urgent"
-                        });
+                    b.ToTable("Priority");
                 });
 
             modelBuilder.Entity("ProjectManagement.Models.Project", b =>
@@ -432,15 +412,15 @@ namespace ProjectManagement.Migrations
                         {
                             Id = "89c4435a-6986-4995-b514-2aec9af0ac3f",
                             AccessFailedCount = 0,
-                            ConcurrencyStamp = "9828aba1-d0e1-402a-b4e3-d96d2590168f",
+                            ConcurrencyStamp = "dd81a4b9-a52c-4417-9fa6-44cb4316ed76",
                             Email = "admin@gmail.com",
                             EmailConfirmed = true,
                             LockoutEnabled = false,
                             NormalizedEmail = "ADMIN@GMAIL.COM",
                             NormalizedUserName = "ADMIN@GMAIL.COM",
-                            PasswordHash = "AQAAAAEAACcQAAAAEASfTqtbfJandGm7RMmuVIsjK+K9o/AK/lOHhWWLx/a9MZvKpI+9MMQbSO3rfYl7yQ==",
+                            PasswordHash = "AQAAAAEAACcQAAAAEA4ZntjXdw6c7qlO9bGwEGR1eGTKk5GHqwvEK5JzQwRraCaYYDzuHhX8hBaJGz6vQg==",
                             PhoneNumberConfirmed = false,
-                            SecurityStamp = "1545969d-77b9-4cf7-a8a0-454e8b6ccdfe",
+                            SecurityStamp = "43929fbe-915f-4c71-99c6-594b84ddf1ac",
                             TwoFactorEnabled = false,
                             UserName = "admin@gmail.com",
                             FirstName = "Admin",
@@ -450,15 +430,15 @@ namespace ProjectManagement.Migrations
                         {
                             Id = "5393722f-d39e-4bb1-8a5e-9641e3ce4a25",
                             AccessFailedCount = 0,
-                            ConcurrencyStamp = "484e9842-738d-4bfe-b287-344017af26a7",
+                            ConcurrencyStamp = "34bd4cad-73b0-44c9-a331-8c59b04b0460",
                             Email = "Nancy@gmail.com",
                             EmailConfirmed = true,
                             LockoutEnabled = false,
                             NormalizedEmail = "Nancy@GMAIL.COM",
                             NormalizedUserName = "NANCY@GMAIL.COM",
-                            PasswordHash = "AQAAAAEAACcQAAAAEH6T1fmj+Yr5HAupp2iZR5rkHMEdUIMfpmSpRXmMUJnlCkoi1vJJcnbJXRP0/uq6kw==",
+                            PasswordHash = "AQAAAAEAACcQAAAAEIJSphn01Argm7a1l4pW2L9RRA7UVqjXQgOD2++/uH6TU4GpzZIcVe/rz5NohU5AdQ==",
                             PhoneNumberConfirmed = false,
-                            SecurityStamp = "262349cd-c377-412d-b270-6083c200fbe1",
+                            SecurityStamp = "91025adc-c848-4cae-aa2c-f1924030c4c8",
                             TwoFactorEnabled = false,
                             UserName = "Nancy@gmail.com",
                             FirstName = "Nancy",
@@ -468,15 +448,15 @@ namespace ProjectManagement.Migrations
                         {
                             Id = "6d91481c-2946-4b3d-9117-072c4953475e",
                             AccessFailedCount = 0,
-                            ConcurrencyStamp = "057cb934-2a22-4cbf-9e83-ee5e1f9765c5",
+                            ConcurrencyStamp = "c2d9b570-b5ef-45ab-b71e-f798eefb2b0a",
                             Email = "Joseph@gmail.com",
                             EmailConfirmed = true,
                             LockoutEnabled = false,
                             NormalizedEmail = "JOSEPH@GMAIL.COM",
                             NormalizedUserName = "JOSEPH@GMAIL.COM",
-                            PasswordHash = "AQAAAAEAACcQAAAAEGiZ0mUEzaYkWFBxo7A98OOtyoLLRo2UDqgY6s2sVhZpgvDDPS75PoKxUKBVe/cgkw==",
+                            PasswordHash = "AQAAAAEAACcQAAAAEJuPGDeV3DjLti11eVJHMgHV84qnjZg3285S2i91rWM54cxETCU8BeCSa7P1C8QQow==",
                             PhoneNumberConfirmed = false,
-                            SecurityStamp = "958d72aa-d7cc-4afa-8383-e0aac36b5666",
+                            SecurityStamp = "1b899b8d-b3cc-4646-9c06-a4e1793e2b54",
                             TwoFactorEnabled = false,
                             UserName = "Joseph@gmail.com",
                             FirstName = "Joseph",

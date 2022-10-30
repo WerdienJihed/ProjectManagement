@@ -1,18 +1,13 @@
-﻿using Microsoft.AspNetCore.Mvc;
-using Microsoft.AspNetCore.Mvc.Rendering;
-using ProjectManagement.Models;
+﻿using ProjectManagement.CustomHelpers;
 using System.ComponentModel;
-using System.ComponentModel.DataAnnotations;
-using System.Security.Policy;
-using System.Windows.Markup;
 
 namespace ProjectManagement.viewModels
 {
 
 	public class ProjectBaseVM
 	{
-		public Guid Id { get; set; }
-		public string Name { get; set; } = string.Empty;
+		public string? Id { get; set; }
+		public string Name { get; set; } = null!;
 		public DateTime CreatedAt { get; set; }
 		public DateTime ModifiedAt { get; set; }
 	}
@@ -37,7 +32,8 @@ namespace ProjectManagement.viewModels
 	public class ProjectEditVM : ProjectBaseVM
 	{
 		[DisplayName("Status")]
-		public Guid SelectedStatusId { get; set; }
+		[DropDownValidator]
+		public string SelectedStatusId { get; set; } = null!;
 		public List<StatusBaseVM> Statuses { get; set; } = new List<StatusBaseVM>();
 	}
 }

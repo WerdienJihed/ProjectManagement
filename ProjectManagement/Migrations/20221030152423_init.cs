@@ -5,7 +5,7 @@ using Microsoft.EntityFrameworkCore.Migrations;
 
 namespace ProjectManagement.Migrations
 {
-    public partial class FirstMigration : Migration
+    public partial class init : Migration
     {
         protected override void Up(MigrationBuilder migrationBuilder)
         {
@@ -55,8 +55,8 @@ namespace ProjectManagement.Migrations
                 name: "Status",
                 columns: table => new
                 {
-                    Id = table.Column<Guid>(type: "uniqueidentifier", nullable: false),
-                    Name = table.Column<string>(type: "nvarchar(max)", nullable: true)
+                    Id = table.Column<string>(type: "nvarchar(450)", nullable: false),
+                    Name = table.Column<string>(type: "nvarchar(max)", nullable: false)
                 },
                 constraints: table =>
                 {
@@ -173,11 +173,11 @@ namespace ProjectManagement.Migrations
                 name: "Project",
                 columns: table => new
                 {
-                    Id = table.Column<Guid>(type: "uniqueidentifier", nullable: false),
-                    Name = table.Column<string>(type: "nvarchar(max)", nullable: true),
+                    Id = table.Column<string>(type: "nvarchar(450)", nullable: false),
+                    Name = table.Column<string>(type: "nvarchar(max)", nullable: false),
                     CreatedAt = table.Column<DateTime>(type: "datetime2", nullable: false),
                     ModifiedAt = table.Column<DateTime>(type: "datetime2", nullable: false),
-                    StatusId = table.Column<Guid>(type: "uniqueidentifier", nullable: true)
+                    StatusId = table.Column<string>(type: "nvarchar(450)", nullable: false)
                 },
                 constraints: table =>
                 {
@@ -186,21 +186,22 @@ namespace ProjectManagement.Migrations
                         name: "FK_Project_Status_StatusId",
                         column: x => x.StatusId,
                         principalTable: "Status",
-                        principalColumn: "Id");
+                        principalColumn: "Id",
+                        onDelete: ReferentialAction.Restrict);
                 });
 
             migrationBuilder.CreateTable(
                 name: "Ticket",
                 columns: table => new
                 {
-                    Id = table.Column<Guid>(type: "uniqueidentifier", nullable: false),
-                    Name = table.Column<string>(type: "nvarchar(max)", nullable: true),
+                    Id = table.Column<string>(type: "nvarchar(450)", nullable: false),
+                    Name = table.Column<string>(type: "nvarchar(max)", nullable: false),
                     Description = table.Column<string>(type: "nvarchar(max)", nullable: true),
                     CreatedAt = table.Column<DateTime>(type: "datetime2", nullable: false),
                     ModifiedAt = table.Column<DateTime>(type: "datetime2", nullable: false),
-                    ProjectId = table.Column<Guid>(type: "uniqueidentifier", nullable: true),
-                    AssignedToId = table.Column<string>(type: "nvarchar(450)", nullable: true),
-                    StatusId = table.Column<Guid>(type: "uniqueidentifier", nullable: true)
+                    ProjectId = table.Column<string>(type: "nvarchar(450)", nullable: false),
+                    AssignedToId = table.Column<string>(type: "nvarchar(450)", nullable: false),
+                    StatusId = table.Column<string>(type: "nvarchar(450)", nullable: false)
                 },
                 constraints: table =>
                 {
@@ -209,17 +210,20 @@ namespace ProjectManagement.Migrations
                         name: "FK_Ticket_AspNetUsers_AssignedToId",
                         column: x => x.AssignedToId,
                         principalTable: "AspNetUsers",
-                        principalColumn: "Id");
+                        principalColumn: "Id",
+                        onDelete: ReferentialAction.Restrict);
                     table.ForeignKey(
                         name: "FK_Ticket_Project_ProjectId",
                         column: x => x.ProjectId,
                         principalTable: "Project",
-                        principalColumn: "Id");
+                        principalColumn: "Id",
+                        onDelete: ReferentialAction.Restrict);
                     table.ForeignKey(
                         name: "FK_Ticket_Status_StatusId",
                         column: x => x.StatusId,
                         principalTable: "Status",
-                        principalColumn: "Id");
+                        principalColumn: "Id",
+                        onDelete: ReferentialAction.Restrict);
                 });
 
             migrationBuilder.InsertData(
@@ -227,8 +231,8 @@ namespace ProjectManagement.Migrations
                 columns: new[] { "Id", "ConcurrencyStamp", "Name", "NormalizedName" },
                 values: new object[,]
                 {
-                    { "2bb80575-a02f-45e3-9504-1f225cbf237e", "e8b19586-70ff-4f38-87f7-d4dd912788a9", "Developer", "DEVELOPER" },
-                    { "989c13c2-05a1-471b-abe4-1aecf8485887", "4de9d5c3-3922-4de9-9043-ab8f18f68cce", "Administrator", "ADMINISTRATOR" }
+                    { "2bb80575-a02f-45e3-9504-1f225cbf237e", "8ad4fe42-2729-49b3-96c7-f4aa88427ca7", "Developer", "DEVELOPER" },
+                    { "989c13c2-05a1-471b-abe4-1aecf8485887", "e9011710-8b18-41de-9ab1-ff91b44eaedb", "Administrator", "ADMINISTRATOR" }
                 });
 
             migrationBuilder.InsertData(
@@ -236,9 +240,9 @@ namespace ProjectManagement.Migrations
                 columns: new[] { "Id", "AccessFailedCount", "ConcurrencyStamp", "Discriminator", "Email", "EmailConfirmed", "FirstName", "LastName", "LockoutEnabled", "LockoutEnd", "NormalizedEmail", "NormalizedUserName", "PasswordHash", "PhoneNumber", "PhoneNumberConfirmed", "SecurityStamp", "TwoFactorEnabled", "UserName" },
                 values: new object[,]
                 {
-                    { "5393722f-d39e-4bb1-8a5e-9641e3ce4a25", 0, "9d0fb49e-ca9d-4320-8a56-91da24246b03", "ApplicationUser", "Nancy@gmail.com", true, "Nancy", "Stjohn", false, null, "Nancy@GMAIL.COM", "NANCY@GMAIL.COM", "AQAAAAEAACcQAAAAEL1/Hb1vi1QjaiDCC4HTpvdnb5qmvyMLAbIbwejfH1qmxKTtdZtbqBYIuxjGGNpmqg==", null, false, "05544ae8-86f0-4f24-8455-8cf7e9be8975", false, "Nancy@gmail.com" },
-                    { "6d91481c-2946-4b3d-9117-072c4953475e", 0, "390384c2-edc9-4121-9206-1a13c8d08784", "ApplicationUser", "Joseph@gmail.com", true, "Joseph", "Bliss", false, null, "JOSEPH@GMAIL.COM", "JOSEPH@GMAIL.COM", "AQAAAAEAACcQAAAAEKiaRk7aKkC2SlEM9xf3HURmCAilThX/966bEJH2OGIItBPvjjhe03J9j5gop9TwAg==", null, false, "733817da-0ba4-4e04-99fc-35a566125c5d", false, "Joseph@gmail.com" },
-                    { "89c4435a-6986-4995-b514-2aec9af0ac3f", 0, "1e99bd58-859e-420e-9ed3-c6b1f18c43ca", "ApplicationUser", "admin@gmail.com", true, null, null, false, null, "ADMIN@GMAIL.COM", "ADMIN@GMAIL.COM", "AQAAAAEAACcQAAAAEP80sBQzEBcDaLLAy9s+hhV5NxR6v1u9ax2a1DQPC2ZGH1dCf0lbGSM2KrP2mOyTrA==", null, false, "c667f6e2-cd90-4439-95d0-b364b1eaf4eb", false, "admin@gmail.com" }
+                    { "5393722f-d39e-4bb1-8a5e-9641e3ce4a25", 0, "824560d8-a95f-48ad-ab8c-91f26d0b3841", "ApplicationUser", "Nancy@gmail.com", true, "Nancy", "Stjohn", false, null, "Nancy@GMAIL.COM", "NANCY@GMAIL.COM", "AQAAAAEAACcQAAAAEHgJG0pNvcWiJZ+CBwcXpyPv2cv1HFQ7a80TM5RIrYDXsQWQj+NOGhn1t+LWLbHjIw==", null, false, "2c0ac15d-360d-4b95-8c44-52cfa003e0c7", false, "Nancy@gmail.com" },
+                    { "6d91481c-2946-4b3d-9117-072c4953475e", 0, "a7a69ba7-469e-4b90-9678-cf7a8ad01571", "ApplicationUser", "Joseph@gmail.com", true, "Joseph", "Bliss", false, null, "JOSEPH@GMAIL.COM", "JOSEPH@GMAIL.COM", "AQAAAAEAACcQAAAAELxhQcqv2igG/MTC2d2ReQttqGGowznZ46qcDS1eRt3hFPWprvjH2k8Co04tIhxIDA==", null, false, "a46f3eb2-907c-411f-a984-0e40666b24d4", false, "Joseph@gmail.com" },
+                    { "89c4435a-6986-4995-b514-2aec9af0ac3f", 0, "0dac7437-bd1a-4581-bc23-467d098f039a", "ApplicationUser", "admin@gmail.com", true, "Admin", "Admin", false, null, "ADMIN@GMAIL.COM", "ADMIN@GMAIL.COM", "AQAAAAEAACcQAAAAEJttFFKwUmJEyhDL6IbjQUJY0szxKbXqBqxVsqa2s4cWw8/cCJC2p0d7jzlr0X1VGg==", null, false, "d34d8c2e-2ada-49fb-8876-c2b1c416da87", false, "admin@gmail.com" }
                 });
 
             migrationBuilder.InsertData(
@@ -246,11 +250,11 @@ namespace ProjectManagement.Migrations
                 columns: new[] { "Id", "Name" },
                 values: new object[,]
                 {
-                    { new Guid("06351907-ea60-4f42-bcb4-8b8ce7ce87eb"), "Unassigned" },
-                    { new Guid("1aba0280-ae62-4e88-9f3b-efc6a14e76ec"), "Started" },
-                    { new Guid("1ce7d834-b757-4f42-9a0f-f55ee31f1e29"), "Completed" },
-                    { new Guid("4b67a21a-73a6-4310-a045-e9de6d075f8e"), "Pending" },
-                    { new Guid("6acfa4c4-f146-4b4f-8709-f50710494b7b"), "Blocked" }
+                    { "06351907-ea60-4f42-bcb4-8b8ce7ce87eb", "Unassigned" },
+                    { "1aba0280-ae62-4e88-9f3b-efc6a14e76ec", "Started" },
+                    { "1ce7d834-b757-4f42-9a0f-f55ee31f1e29", "Completed" },
+                    { "4b67a21a-73a6-4310-a045-e9de6d075f8e", "Pending" },
+                    { "6acfa4c4-f146-4b4f-8709-f50710494b7b", "Blocked" }
                 });
 
             migrationBuilder.InsertData(

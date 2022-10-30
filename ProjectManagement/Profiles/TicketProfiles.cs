@@ -14,6 +14,10 @@ namespace ProjectManagement.Profiles
 					.ForMember(
 							dest => dest.Status,
 							opt => opt.MapFrom(src => src.Status.Name)
+						)				
+					.ForMember(
+							dest => dest.Priority,
+							opt => opt.MapFrom(src => src.Priority.Name)
 						)
 					.ForMember(
 							dest => dest.Project,
@@ -29,6 +33,10 @@ namespace ProjectManagement.Profiles
 							opt => opt.MapFrom(src => src.Status.Name)
 						)
 					.ForMember(
+							dest => dest.Priority,
+							opt => opt.MapFrom(src => src.Priority.Name)
+						)
+					.ForMember(
 							dest => dest.Project,
 							opt => opt.MapFrom(src => src.Project)
 						)
@@ -41,6 +49,9 @@ namespace ProjectManagement.Profiles
 					.ForMember(
 							dest => dest.SelectedStatusId,
 							opt => opt.MapFrom(src => src.Status.Id))
+					.ForMember(
+							dest => dest.SelectedPriorityId,
+							opt => opt.MapFrom(src => src.Priority.Id))
 					.ForMember(
 							dest => dest.SelectedDeveloperId,
 							opt => opt.MapFrom(src => src.AssignedTo.Id))

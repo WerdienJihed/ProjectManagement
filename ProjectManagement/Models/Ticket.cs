@@ -1,20 +1,27 @@
-﻿using Microsoft.AspNetCore.Identity;
-using System.ComponentModel.DataAnnotations.Schema;
-using System.Xml.Linq;
+﻿using System.ComponentModel.DataAnnotations;
+
 
 namespace ProjectManagement.Models
 {
-	#nullable disable
 	public class Ticket
 	{
-		public Guid Id { get; set; }
-		public string Name { get; set; }
-		public string Description { get; set; }
+		[Key]
+		public string Id { get; set; } = null!;
+		[Required]
+		public string Name { get; set; } = null!;
+		public string? Description { get; set; }
+		[Required]
 		public DateTime CreatedAt { get; set; }
+		[Required]
 		public DateTime ModifiedAt { get; set; }
-		public Project Project { get; set; }
-		public ApplicationUser AssignedTo { get; set; }
-		public Status Status { get; set; }
+		[Required]
+		public Project Project { get; set; } = null!;
+		[Required]
+		public ApplicationUser AssignedTo { get; set; } = null!;
+		[Required]
+		public Status Status { get; set; } = null!;
+		[Required]
+		public Priority Priority { get; set; } = null!;
 
 	}
 }

@@ -16,15 +16,15 @@ namespace ProjectManagement.Repository
 		}
 		public async Task<ICollection<Ticket>> FindAll()
 		{
-			return await _context.Tickets.Include("Project").Include("AssignedTo").Include("Status").ToListAsync();
+			return await _context.Tickets.Include("Project").Include("AssignedTo").Include("Status").Include("Priority").ToListAsync();
 		}
 		public async Task<ICollection<Ticket>> FindByUserId(string id)
 		{
-			return await _context.Tickets.Include("Project").Include("AssignedTo").Include("Status").Where(t=>t.AssignedTo.Id == id).ToListAsync();
+			return await _context.Tickets.Include("Project").Include("AssignedTo").Include("Status").Include("Priority").Where(t=>t.AssignedTo.Id == id).ToListAsync();
 		}
-		public async Task<Ticket> FindById(Guid? id)
+		public async Task<Ticket> FindById(string? id)
 		{
-			return await _context.Tickets.Include("Project").Include("AssignedTo").Include("Status").FirstAsync(t => t.Id == id);
+			return await _context.Tickets.Include("Project").Include("AssignedTo").Include("Status").Include("Priority").FirstAsync(t => t.Id == id);
 		}
 		public async Task<bool> Create(Ticket entity)
 		{
@@ -42,7 +42,7 @@ namespace ProjectManagement.Repository
 			_context.Tickets.Remove(entity);
 			return await Save();
 		}
-		public async Task<bool> Exists(Guid id)
+		public async Task<bool> Exists(string id)
 		{
 			return await _context.Tickets.AnyAsync(t => t.Id == id);
 		}

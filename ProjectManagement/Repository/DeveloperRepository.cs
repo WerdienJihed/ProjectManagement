@@ -19,7 +19,7 @@ namespace ProjectManagement.Repository
 			return await _userManager.GetUsersInRoleAsync("Developer");
         }
 
-		public async Task<ApplicationUser> FindById(Guid id)
+		public async Task<ApplicationUser> FindById(string id)
 		{
 			return await _userManager.FindByIdAsync(id.ToString());
 		}

@@ -48,7 +48,7 @@ namespace ProjectManagement.Controllers
         }
 
         // GET: Projects/Details/5
-        public async Task<IActionResult> Details(Guid? id)
+        public async Task<IActionResult> Details(string? id)
         {
             if (id == null || _context.Projects == null)
             {
@@ -103,7 +103,7 @@ namespace ProjectManagement.Controllers
         }
 
         //GET: Projects/Edit/5
-        public async Task<IActionResult> Edit(Guid? id)
+        public async Task<IActionResult> Edit(string? id)
         {
             if (id == null || _context.Projects == null)
             {
@@ -123,7 +123,7 @@ namespace ProjectManagement.Controllers
         // POST: Projects/Edit/5
         [HttpPost]
         [ValidateAntiForgeryToken]
-        public async Task<IActionResult> Edit(Guid id, ProjectEditVM projectVM)
+        public async Task<IActionResult> Edit(string id, ProjectEditVM projectVM)
         {
             if (id != projectVM.Id)
             {
@@ -131,13 +131,23 @@ namespace ProjectManagement.Controllers
             }
             var statues = await _context.Statuses.ToListAsync();
 			projectVM.Statuses = _mapper.Map<List<Status>,List<StatusBaseVM>>(statues);
+            Status? status = statues.FirstOrDefault(s => s.Id == projectVM.SelectedStatusId);
 
-            if (ModelState.IsValid)
+			
+
+
+			if (ModelState.IsValid)
             {
                 try
                 {
                     Project project = await _repository.FindById(id);
-                    project.Status = statues.FirstOrDefault(s => s.Id == projectVM.SelectedStatusId);
+					
+                    if (status == null)
+					{
+						throw new Exception("Status not found in database");
+					}
+					
+                    project.Status = status;
 					await _repository.Update(project);
                 }
                 catch (DbUpdateConcurrencyException)
@@ -157,7 +167,7 @@ namespace ProjectManagement.Controllers
         }
 
         // GET: Projects/Delete/5
-        public async Task<IActionResult> Delete(Guid? id)
+        public async Task<IActionResult> Delete(string? id)
         {
             if (id == null || _context.Projects == null)
             {
@@ -179,7 +189,7 @@ namespace ProjectManagement.Controllers
         // POST: Projects/Delete/5
         [HttpPost, ActionName("Delete")]
         [ValidateAntiForgeryToken]
-        public async Task<IActionResult> DeleteConfirmed(Guid id)
+        public async Task<IActionResult> DeleteConfirmed(string id)
         {
             if (_context.Projects == null)
             {

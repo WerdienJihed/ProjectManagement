@@ -2,7 +2,7 @@
 
 namespace ProjectManagement.viewModels
 {
-	public class StatusBaseVM
+	public class PriorityBaseVM
 	{
 		public string? Id { get; set; }
 		public string Name { get; set; } = null!;
