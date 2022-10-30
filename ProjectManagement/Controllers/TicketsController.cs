@@ -3,7 +3,7 @@ using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using ProjectManagement.Contracts;
-using ProjectManagement.Data;
+using ProjectManagement.CustomHelpers;
 using ProjectManagement.Models;
 using ProjectManagement.viewModels;
 using System.Security.Claims;
@@ -13,73 +13,69 @@ namespace ProjectManagement.Controllers
     [Authorize]
     public class TicketsController : Controller
     {
-        private readonly ApplicationDbContext _context;
         private readonly ITicketRepository _repository;
         private readonly IProjectRepository _projectRepository;
         private readonly IDeveloperRepository _developerRepository;
+        private readonly IPriorityRepository _priorityRepository;
+        private readonly IStatusRepository _statusRepository;
 		private readonly IMapper _mapper;
 
 		public TicketsController(
-            ApplicationDbContext context, 
             ITicketRepository repository, 
             IProjectRepository projectRepository, 
             IDeveloperRepository developerRepository,
+            IPriorityRepository priorityRepository,
+            IStatusRepository statusRepository,
             IMapper mapper
             )
         {
-            _context = context;
             _repository = repository;
             _projectRepository = projectRepository;
 			_developerRepository = developerRepository;
+            _priorityRepository = priorityRepository;
+            _statusRepository = statusRepository;
             _mapper = mapper;
         }
 
         // GET: Tickets
         public async Task<IActionResult> Index()
         {
-            if (_context.Tickets == null)
-            {
-                return Problem("Entity set 'ApplicationDbContext.Tickets'  is null.");
-            }
-            else
-            {
-                bool isAdmin = User.IsInRole("Administrator");
-				ICollection<Ticket> tickes = new List<Ticket>();
+			bool isAdmin = User.IsInRole("Administrator");
+			ICollection<Ticket> tickets = new List<Ticket>();
 
-				if (isAdmin) 
-                {
-					tickes = await _repository.FindAll();
-                }
-                else
-                {
-                    string userId = User.FindFirstValue(ClaimTypes.NameIdentifier);
-					tickes = await _repository.FindByUserId(userId);
+			if (isAdmin)
+			{
+				tickets = await _repository.FindAll();
+			}
+			else
+			{
+				string userId = User.FindFirstValue(ClaimTypes.NameIdentifier);
+				tickets = await _repository.FindByUserId(userId);
 
-				}
+			}
 
-                List<TicketIndexVM> ticketsVM = _mapper.Map<List<TicketIndexVM>>(tickes);
+			List<TicketIndexVM> ticketsVM = _mapper.Map<List<TicketIndexVM>>(tickets);
 
-                if (isAdmin)
-                {
-					return View(ticketsVM);
-				}
-                else
-                {
-                    return View("DeveloperIndex", ticketsVM);
-                }
-            }
-        }
+			if (isAdmin)
+			{
+				return View(ticketsVM);
+			}
+			else
+			{
+				return View("DeveloperIndex", ticketsVM);
+			}
+		}
 
 		// GET: Tickets/Details/5
 		[Authorize(Roles=("Administrator"))]
 		public async Task<IActionResult> Details(string? id)
         {
-            if (id == null || _context.Tickets == null)
+            if (id == null)
             {
                 return NotFound();
             }
 
-            var ticket = await _repository.FindById(id);
+            Ticket ticket = await _repository.FindById(id);
             if (ticket == null)
             {
                 return NotFound();
@@ -95,7 +91,7 @@ namespace ProjectManagement.Controllers
         {
 			ICollection<Project> projects = await _projectRepository.FindAll();
 			ICollection<ApplicationUser> developers = await _developerRepository.FindAll();
-            ICollection<Priority> priorities = await _context.Priorities.ToListAsync();
+            ICollection<Priority> priorities = await _priorityRepository.FindAll();
 
 			TicketCreateVM ticketVM = new TicketCreateVM();
             ticketVM.Projects = _mapper.Map<ICollection<Project>,List<ProjectBaseVM>>(projects);
@@ -112,7 +108,7 @@ namespace ProjectManagement.Controllers
         {
 			ICollection<Project> projects = await _projectRepository.FindAll();
 			ICollection<ApplicationUser> developers = await _developerRepository.FindAll();
-            ICollection<Priority> priorities = await _context.Priorities.ToListAsync();
+            ICollection<Priority> priorities = await _priorityRepository.FindAll();
 
 			ticketVM.Projects = _mapper.Map<ICollection<Project>, List<ProjectBaseVM>>(projects);
 			ticketVM.Developers = _mapper.Map<ICollection<ApplicationUser>, List<DeveloperBaseVM>>(developers);
@@ -122,8 +118,8 @@ namespace ProjectManagement.Controllers
             {
                 ApplicationUser developer = await _developerRepository.FindById(ticketVM.SelectedDeveloperId);
                 Project project = await _projectRepository.FindById(ticketVM.SelectedProjectId);
-				Priority? priority = await _context.Priorities.FindAsync(ticketVM.SelectedPriorityId);
-				Status status = _context.Statuses.First(s => s.Name == "Pending");
+				Priority? priority = await _priorityRepository.FindById(ticketVM.SelectedPriorityId);
+				Status status = await _statusRepository.GetStatusByEnum(StatusEnum.Pending);
                 Ticket ticket = _mapper.Map<Ticket>(ticketVM);
                 ticket.Status = status;
 				ticket.AssignedTo = developer;
@@ -135,23 +131,24 @@ namespace ProjectManagement.Controllers
             return View(ticketVM);
         }
 
-        // GET: Tickets/Edit/5
-        public async Task<IActionResult> Edit(string? id)
+		// GET: Tickets/Edit/5
+		[Authorize(Roles = ("Administrator"))]
+		public async Task<IActionResult> Edit(string? id)
         {
-            if (id == null || _context.Tickets == null)
+            if (id == null)
             {
                 return NotFound();
             }
 
-            var ticket = await _repository.FindById(id);
+            Ticket ticket = await _repository.FindById(id);
             if (ticket == null)
             {
                 return NotFound();
             }
             ICollection<Project> projects = await _projectRepository.FindAll();
 			ICollection<ApplicationUser> developers = await _developerRepository.FindAll();
-			ICollection<Status> statuses = await _context.Statuses.ToListAsync();
-			ICollection<Priority> priorities = await _context.Priorities.ToListAsync();
+			ICollection<Status> statuses = await _statusRepository.FindAll();
+			ICollection<Priority> priorities = await _priorityRepository.FindAll();
 
 			TicketEditVM ticketVM = _mapper.Map<TicketEditVM>(ticket);
             ticketVM.Projects = _mapper.Map<ICollection<Project>, List<ProjectBaseVM>>(projects);
@@ -160,17 +157,8 @@ namespace ProjectManagement.Controllers
 			ticketVM.Priorities = _mapper.Map<ICollection<Priority>, List<PriorityBaseVM>>(priorities);
 
 
-			bool isAdmin = User.IsInRole("Administrator");
-
-			if (isAdmin)
-            {
-                return View(ticketVM);
-            }
-            else 
-            {
-                return View("DeveloperEdit", ticketVM);
-            }
-        }
+			return View(ticketVM);
+		}
 
         // POST: Tickets/Edit/5
         [HttpPost]
@@ -184,40 +172,26 @@ namespace ProjectManagement.Controllers
 
 			ICollection<Project> projects  = await _projectRepository.FindAll();
 			ICollection<ApplicationUser> developers = await _developerRepository.FindAll();
-			ICollection<Status> statuses = await _context.Statuses.ToListAsync();
-			ICollection<Priority> priorities = await _context.Priorities.ToListAsync();
+			ICollection<Status> statuses = await _statusRepository.FindAll();
+			ICollection<Priority> priorities = await _priorityRepository.FindAll();
 
 			ticketVM.Projects = _mapper.Map<ICollection<Project>, List<ProjectBaseVM>>(projects);
 			ticketVM.Developers = _mapper.Map<ICollection<ApplicationUser>, List<DeveloperBaseVM>>(developers);
 			ticketVM.Statuses = _mapper.Map<ICollection<Status>, List<StatusBaseVM>>(statuses);
 			ticketVM.Priorities = _mapper.Map<ICollection<Priority>, List<PriorityBaseVM>>(priorities);
 
-			Status? status = await _context.Statuses.FindAsync(ticketVM.SelectedStatusId);
-			Priority? priority = await _context.Priorities.FindAsync(ticketVM.SelectedPriorityId);
-
-            if (status == null)
-            {
-                throw new Exception("Status not found in database");
-            }
 
 			if (ModelState.IsValid)
             {
                 try
                 {
-					bool isAdmin = User.IsInRole("Administrator");
-                    Ticket ticket = await _repository.FindById(id); 
-                    if (isAdmin) 
-                    {
-					    var project = await _projectRepository.FindById(ticketVM.SelectedProjectId);
-                        var AssignedTo = await _developerRepository.FindById(ticketVM.SelectedDeveloperId);
-                        ticket.Name= ticketVM.Name;
-                        ticket.Description= ticketVM.Description;
-                        ticket.Project = project;
-                        ticket.AssignedTo = AssignedTo;
-                        ticket.Priority = priority;
-					}
-                   
-					ticket.Status = status;
+                    Ticket ticket = await _repository.FindById(id);
+					ticket.Name = ticketVM.Name;
+					ticket.Description = ticketVM.Description;
+					ticket.Project = await _projectRepository.FindById(ticketVM.SelectedProjectId);
+					ticket.AssignedTo = await _developerRepository.FindById(ticketVM.SelectedDeveloperId);
+					ticket.Priority = await _priorityRepository.FindById(ticketVM.SelectedPriorityId); ;
+					ticket.Status = await _statusRepository.FindById(ticketVM.SelectedStatusId); ;
 					await _repository.Update(ticket);
                 }
                 catch (DbUpdateConcurrencyException)
@@ -240,12 +214,12 @@ namespace ProjectManagement.Controllers
 		[Authorize(Roles = ("Administrator"))]
 		public async Task<IActionResult> Delete(string? id)
         {
-            if (id == null || _context.Tickets == null)
+            if (id == null)
             {
                 return NotFound();
             }
 
-            var ticket = await _repository.FindById(id);
+            Ticket ticket = await _repository.FindById(id);
             TicketBaseVM ticketVM = _mapper.Map<TicketBaseVM>(ticket);
 			if (ticket == null)
             {
@@ -261,16 +235,11 @@ namespace ProjectManagement.Controllers
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> DeleteConfirmed(string id)
         {
-            if (_context.Tickets == null)
-            {
-                return Problem("Entity set 'ApplicationDbContext.Tickets'  is null.");
-            }
-            var ticket = await _repository.FindById(id);
+            Ticket ticket = await _repository.FindById(id);
             if (ticket != null)
             {
                 await _repository.Delete(ticket);
             }
-
 
             return RedirectToAction(nameof(Index));
         }
@@ -279,24 +248,23 @@ namespace ProjectManagement.Controllers
 		public async Task<StatusCodeResult> EditTicketStatus(string? id,[FromBody] string selectedStatus)
         {
 			Ticket ticket = await _repository.FindById(id);
-			var status = _context.Statuses.FirstOrDefault(s => s.Name == selectedStatus);
-            
-            if (id ==null ||ticket == null || status == null)
-            {
-				return BadRequest();
-			}
 
-            try
+            bool exists = Enum.TryParse(selectedStatus,false,out StatusEnum statusEnum);
+            
+            if (exists)
+                return BadRequest();
+
+            Status status = await _statusRepository.GetStatusByEnum(statusEnum);
+			try
             {
-				ticket.Status = status;
-				await _repository.Update(ticket);
+                ticket.Status = status;
+                await _repository.Update(ticket);
                 return Ok();
-			}
+            }
             catch (Exception)
             {
-
-				return NotFound() ;
-			}
+                return NotFound();
+            }
 		}
 
     }

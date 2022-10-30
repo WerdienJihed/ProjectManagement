@@ -1,5 +1,5 @@
 ﻿@model IEnumerable<ProjectManagement.viewModels.TicketIndexVM>
-
+@using ProjectManagement.CustomHelpers;
 @{
     ViewData["Title"] = "Index";
 }
@@ -10,11 +10,11 @@
 <div class="container">
     <div class="row text-center">
             <div class="col">
-                <h5>Pending</h5>
-                <div class="status-container" id="pending">
+                <h5>@StatusEnum.Pending.ToString()</h5>
+            <div class="status-container" id=@StatusEnum.Pending.ToString()>
                     @foreach (var item in Model)
                     {
-                        if (item.Status == "Pending")
+                        if (item.Status == StatusEnum.Pending)
                         {
                             <div class="alert alert-primary ticket" role="alert"id="@item.Id">
                                 @Html.DisplayFor(modelItem => item.Name)
@@ -24,11 +24,11 @@
                 </div>
             </div>
             <div class="col">
-                <h5>Started</h5>
-                <div class="status-container" id="started">
+            <h5>@StatusEnum.Started.ToString()</h5>
+            <div class="status-container" id=@StatusEnum.Started.ToString()>
                     @foreach (var item in Model)
                     {
-                        if (item.Status == "Started")
+                    if (item.Status == StatusEnum.Started)
                         {
                             <div class="alert alert-primary" role="alert" id="@item.Id">
                                 @Html.DisplayFor(modelItem => item.Name)
@@ -38,11 +38,11 @@
                 </div>
             </div>
             <div class="col">
-                <h5>Blocked</h5>
-                <div class="status-container" id="blocked">
+            <h5>@StatusEnum.Blocked.ToString()</h5>
+            <div class="status-container" id=@StatusEnum.Blocked.ToString()>
                     @foreach (var item in Model)
                     {
-                        if (item.Status == "Blocked")
+                    if (item.Status == StatusEnum.Blocked)
                         {
                             <div class="alert alert-primary" role="alert" id="@item.Id">
                                 @Html.DisplayFor(modelItem => item.Name)
@@ -52,11 +52,11 @@
                 </div>
             </div>
             <div class="col">
-                <h5>completed</h5>
-                <div class="status-container" id="completed">
+            <h5>@StatusEnum.Completed.ToString()</h5>
+            <div class="status-container" id=@StatusEnum.Completed.ToString()>
                     @foreach (var item in Model)
                     {
-                        if (item.Status == "Completed")
+                    if (item.Status == StatusEnum.Completed)
                         {
                             <div class="alert alert-primary" role="alert" id="@item.Id">
                                 @Html.DisplayFor(modelItem => item.Name)
@@ -70,17 +70,20 @@
 
 @section Scripts {
     <script>
-        const pending = document.querySelector('#pending');
-        const started = document.querySelector('#started');
-        const blocked = document.querySelector('#blocked');
-        const completed = document.querySelector('#completed');
+        debugger;
 
+        const pending = document.getElementById("@StatusEnum.Pending.ToString()");
+        const started = document.getElementById("@StatusEnum.Started.ToString()");
+        const blocked = document.getElementById("@StatusEnum.Blocked.ToString()");
+        const completed = document.getElementById("@StatusEnum.Completed.ToString()");
         const containers = [pending, started, blocked, completed];
 
         const drake = dragula(containers);
         const drop = (el, target) => {
             const id = el.id;
-            const selectedStatus = target.id.charAt(0).toUpperCase() + target.id.slice(1);
+            //const selectedStatus = target.id.charAt(0).toUpperCase() + target.id.slice(1);
+            const selectedStatus = target.id;
+            debugger;
             const url = '@Url.Action("EditTicketStatus","Tickets")/' + id;
             fetch(url, {
                 method: 'POST',

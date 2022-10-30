@@ -1,6 +1,7 @@
 ﻿using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Identity.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.EntityFrameworkCore.Metadata;
 using ProjectManagement.Models;
 
 namespace ProjectManagement.Data
@@ -20,11 +21,11 @@ namespace ProjectManagement.Data
 
 		protected override void OnModelCreating(ModelBuilder modelBuilder)
 		{
-			var cascadeFKs = modelBuilder.Model.GetEntityTypes()
+			IEnumerable<IMutableForeignKey> cascadeFKs = modelBuilder.Model.GetEntityTypes()
 			.SelectMany(t => t.GetForeignKeys())
 			.Where(fk => !fk.IsOwnership && fk.DeleteBehavior == DeleteBehavior.Cascade);
 
-			foreach (var fk in cascadeFKs)
+			foreach (IMutableForeignKey fk in cascadeFKs)
 				fk.DeleteBehavior = DeleteBehavior.Restrict;
 			
 			base.OnModelCreating(modelBuilder);
@@ -33,7 +34,7 @@ namespace ProjectManagement.Data
 			modelBuilder.Entity<Status>().ToTable("Status");
 			modelBuilder.Entity<Priority>().ToTable("Priority");
 
-			var hasher = new PasswordHasher<IdentityUser>();
+			PasswordHasher<IdentityUser> hasher = new PasswordHasher<IdentityUser>();
 
 			// Roles 
 

@@ -16,15 +16,31 @@ namespace ProjectManagement.Repository
 		}
 		public async Task<ICollection<Ticket>> FindAll()
 		{
-			return await _context.Tickets.Include("Project").Include("AssignedTo").Include("Status").Include("Priority").ToListAsync();
+			return await _context.Tickets
+				.Include(t=>t.Project)
+				.Include(t=>t.AssignedTo)
+				.Include(t=>t.Status)
+				.Include(t=>t.Priority)
+				.ToListAsync();
 		}
 		public async Task<ICollection<Ticket>> FindByUserId(string id)
 		{
-			return await _context.Tickets.Include("Project").Include("AssignedTo").Include("Status").Include("Priority").Where(t=>t.AssignedTo.Id == id).ToListAsync();
+			return await _context.Tickets
+				.Include(t => t.Project)
+				.Include(t => t.AssignedTo)
+				.Include(t => t.Status)
+				.Include(t => t.Priority)
+				.Where(t=>t.AssignedTo.Id == id)
+				.ToListAsync();
 		}
 		public async Task<Ticket> FindById(string? id)
 		{
-			return await _context.Tickets.Include("Project").Include("AssignedTo").Include("Status").Include("Priority").FirstAsync(t => t.Id == id);
+			return await _context.Tickets
+				.Include(t => t.Project)
+				.Include(t=>t.AssignedTo)
+				.Include(t => t.Status)
+				.Include(t => t.Priority)
+				.FirstAsync(t => t.Id == id);
 		}
 		public async Task<bool> Create(Ticket entity)
 		{

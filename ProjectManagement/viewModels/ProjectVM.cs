@@ -20,7 +20,7 @@ namespace ProjectManagement.viewModels
 	public class ProjectDetailsVM : ProjectBaseVM
 	{
 		public string? Status { get; set; }
-		public List<TicketProjectVM>? Tickets { get; set; } =	new List<TicketProjectVM>();
+		public List<TicketProjectVM> Tickets { get; set; } =	new List<TicketProjectVM>();
 		public List<DeveloperBaseVM> Developers { get; set; } = new List<DeveloperBaseVM>();
 	}
 

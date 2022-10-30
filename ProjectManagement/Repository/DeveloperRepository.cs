@@ -1,7 +1,5 @@
 ﻿using Microsoft.AspNetCore.Identity;
-using Microsoft.EntityFrameworkCore;
 using ProjectManagement.Contracts;
-using ProjectManagement.Data;
 using ProjectManagement.Models;
 
 namespace ProjectManagement.Repository

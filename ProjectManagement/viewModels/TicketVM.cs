@@ -1,4 +1,6 @@
-﻿using ProjectManagement.CustomHelpers;
+﻿using Newtonsoft.Json;
+using Newtonsoft.Json.Converters;
+using ProjectManagement.CustomHelpers;
 using System.ComponentModel;
 
 
@@ -16,7 +18,8 @@ namespace ProjectManagement.viewModels
 
 	public class TicketIndexVM : TicketBaseVM 
 	{
-		public string? Status { get; set; }
+		[JsonConverter(typeof(StringEnumConverter))]
+		public StatusEnum Status { get; set; }
 		public string? Developer { get; set; }
 		public string? Project { get; set; }
 		public string? Priority { get; set; }
@@ -55,8 +58,8 @@ namespace ProjectManagement.viewModels
 	}
 	public class TicketProjectVM : TicketBaseVM
 	{
-		public string? Status { get; set; }
-		public DeveloperBaseVM? Developer { get; set; }
+		public string Status { get; set; } = null!;
+		public DeveloperBaseVM Developer { get; set; } = null!;
 
 	}
 

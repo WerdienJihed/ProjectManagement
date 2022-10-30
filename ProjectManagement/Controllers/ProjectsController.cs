@@ -3,7 +3,7 @@ using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using ProjectManagement.Contracts;
-using ProjectManagement.Data;
+using ProjectManagement.CustomHelpers;
 using ProjectManagement.Models;
 using ProjectManagement.viewModels;
 
@@ -12,45 +12,37 @@ namespace ProjectManagement.Controllers
     [Authorize(Roles = "Administrator")]
     public class ProjectsController : Controller
     {
-        private readonly ApplicationDbContext _context;
         private readonly IProjectRepository _repository;
         private readonly ITicketRepository _ticketRepository;
+        private readonly IStatusRepository _statusRepository;
         private readonly IMapper _mapper;
 
         public ProjectsController 
             (
-            ApplicationDbContext context, 
             IProjectRepository repository,
-            ITicketRepository ticketRepository, 
+            ITicketRepository ticketRepository,
+			IStatusRepository statusRepository, 
             IMapper mapper
             )
         {
-            _context = context;
             _repository = repository;
             _ticketRepository = ticketRepository;
+			_statusRepository = statusRepository;
             _mapper = mapper;
         }
 
         // GET: Projects
         public async Task<IActionResult> Index()
         {
-
-            if (_context.Projects == null)
-            {
-                return Problem("Entity set 'ApplicationDbContext.Projects'  is null.");
-            }
-            else
-            {
-				ICollection<Project> projects = await _repository.FindAll();
-                List<ProjectIndexVM> projectsVM = _mapper.Map<List<ProjectIndexVM>>(projects);
-                return View(projectsVM);
-            }
-        }
+			ICollection<Project> projects = await _repository.FindAll();
+			List<ProjectIndexVM> projectsVM = _mapper.Map<List<ProjectIndexVM>>(projects);
+			return View(projectsVM);
+		}
 
         // GET: Projects/Details/5
         public async Task<IActionResult> Details(string? id)
         {
-            if (id == null || _context.Projects == null)
+            if (id == null)
             {
                 return NotFound();
             }
@@ -63,15 +55,7 @@ namespace ProjectManagement.Controllers
             }
 
 			ProjectDetailsVM projectVM = _mapper.Map<ProjectDetailsVM>(project);
-            projectVM.Tickets = await _mapper.ProjectTo<TicketProjectVM>(_context.Tickets).ToListAsync();
-            projectVM.Tickets.ForEach(ticket =>
-            {
-                if (ticket.Developer != null)
-                {
-                    projectVM.Developers.Add(ticket.Developer);
-                }
-            });
-
+            projectVM.Tickets = _mapper.Map<ICollection<Ticket>, List<TicketProjectVM>>(project.Tickets);
             return View(projectVM);
         }
 
@@ -91,9 +75,8 @@ namespace ProjectManagement.Controllers
 
             if (ModelState.IsValid)
             {
-				Status status = _context.Statuses.First(s => s.Name == "Unassigned");
-
-                Project project = _mapper.Map<Project>(projectVM);
+				Status status = await _statusRepository.GetStatusByEnum(StatusEnum.Unassigned);
+				Project project = _mapper.Map<Project>(projectVM);
 				project.Status = status;
 				await _repository.Create(project);
                 
@@ -105,18 +88,20 @@ namespace ProjectManagement.Controllers
         //GET: Projects/Edit/5
         public async Task<IActionResult> Edit(string? id)
         {
-            if (id == null || _context.Projects == null)
+            if (id == null)
             {
                 return NotFound();
             }
 
-            var project = await _repository.FindById(id);
+            Project project = await _repository.FindById(id);
             if (project == null)
             {
                 return NotFound();
             }
             ProjectEditVM projectVM = _mapper.Map<ProjectEditVM>(project);
-            projectVM.Statuses = await _mapper.ProjectTo<StatusBaseVM>(_context.Statuses).ToListAsync();
+            ICollection<Status> statuses = await _statusRepository.FindAll();
+
+            projectVM.Statuses = _mapper.Map<ICollection<Status>,List<StatusBaseVM>>(statuses);
 			return View(projectVM);
         }
 
@@ -129,12 +114,9 @@ namespace ProjectManagement.Controllers
             {
                 return NotFound();
             }
-            var statues = await _context.Statuses.ToListAsync();
-			projectVM.Statuses = _mapper.Map<List<Status>,List<StatusBaseVM>>(statues);
+			ICollection<Status> statues = await _statusRepository.FindAll();
+			projectVM.Statuses = _mapper.Map<ICollection<Status>,List<StatusBaseVM>>(statues);
             Status? status = statues.FirstOrDefault(s => s.Id == projectVM.SelectedStatusId);
-
-			
-
 
 			if (ModelState.IsValid)
             {
@@ -169,12 +151,12 @@ namespace ProjectManagement.Controllers
         // GET: Projects/Delete/5
         public async Task<IActionResult> Delete(string? id)
         {
-            if (id == null || _context.Projects == null)
+            if (id == null)
             {
                 return NotFound();
             }
 
-            var project = await _repository.FindById(id);
+            Project project = await _repository.FindById(id);
 
             if (project == null)
             {
@@ -191,11 +173,7 @@ namespace ProjectManagement.Controllers
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> DeleteConfirmed(string id)
         {
-            if (_context.Projects == null)
-            {
-                return Problem("Entity set 'ApplicationDbContext.Projects'  is null.");
-            }
-            var project = await _repository.FindById(id);
+            Project project = await _repository.FindById(id);
             if (project != null)
             {
                 await _repository.Delete(project);

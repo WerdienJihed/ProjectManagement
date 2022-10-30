@@ -17,12 +17,12 @@ namespace ProjectManagement.Repository
 
 		public async Task<ICollection<Project>> FindAll()
 		{
-			return await _context.Projects.Include("Status").ToListAsync();
+			return await _context.Projects.Include(t=>t.Status).ToListAsync();
 		}
 
 		public async Task<Project> FindById(string? id)
 		{
-			return await _context.Projects.Include("Status").Include("Tickets").FirstAsync(t=>t.Id == id);
+			return await _context.Projects.Include(t => t.Status).Include(t => t.Tickets).FirstAsync(t=>t.Id == id);
 		}
 
 		public async Task<bool> Create(Project entity) 
