@@ -33,6 +33,16 @@ namespace ProjectManagement.Repository
 				.Where(t=>t.AssignedTo.Id == id)
 				.ToListAsync();
 		}
+		public async Task<ICollection<Ticket>> FindByProjectId(string id)
+		{
+			return await _context.Tickets
+				.Include(t => t.Project)
+				.Include(t => t.AssignedTo)
+				.Include(t => t.Status)
+				.Include(t => t.Priority)
+				.Where(t => t.Project.Id == id)
+				.ToListAsync();
+		}
 		public async Task<Ticket> FindById(string? id)
 		{
 			return await _context.Tickets
@@ -56,6 +66,12 @@ namespace ProjectManagement.Repository
 		public async Task<bool> Delete(Ticket entity)
 		{
 			_context.Tickets.Remove(entity);
+			return await Save();
+		}
+		public async Task<bool> DeleteByProjectId(string id)
+		{
+			ICollection<Ticket> tickets = await FindByProjectId(id);
+			_context.Tickets.RemoveRange(tickets);
 			return await Save();
 		}
 		public async Task<bool> Exists(string id)

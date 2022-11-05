@@ -37,7 +37,6 @@ namespace ProjectManagement.Data
 			PasswordHasher<IdentityUser> hasher = new PasswordHasher<IdentityUser>();
 
 			// Roles 
-
 			IdentityRole adminRole = new IdentityRole();
 			adminRole.Id = "989c13c2-05a1-471b-abe4-1aecf8485887";
 			adminRole.Name = "Administrator";
@@ -49,7 +48,6 @@ namespace ProjectManagement.Data
 			developerRole.NormalizedName = "DEVELOPER";
 
 			// Users 
-
 			ApplicationUser admin = new ApplicationUser();
 			admin.Id = "89c4435a-6986-4995-b514-2aec9af0ac3f";
 			admin.FirstName = "Admin";
@@ -84,7 +82,6 @@ namespace ProjectManagement.Data
 			user2.PasswordHash = hasher.HashPassword(user1, "Joseph123#");
 
 			// User Roles
-
 			List<IdentityUserRole<string>> userRoles = new List<IdentityUserRole<string>>()
 			{
 				new IdentityUserRole<string>()
@@ -105,7 +102,6 @@ namespace ProjectManagement.Data
 			};
 
 			// Statuses
-
 			List<Status> statuses = new List<Status>() 
 			{
 				new Status() 
@@ -165,7 +161,6 @@ namespace ProjectManagement.Data
 			modelBuilder.Entity<IdentityUserRole<string>>().HasData(userRoles);
 			modelBuilder.Entity<Status>().HasData(statuses);
 			modelBuilder.Entity<Priority>().HasData(priorities);
-
 		}
 	}
 }

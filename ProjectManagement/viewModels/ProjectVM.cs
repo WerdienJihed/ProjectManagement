@@ -1,5 +1,6 @@
 ﻿using ProjectManagement.CustomHelpers;
 using System.ComponentModel;
+using System.ComponentModel.DataAnnotations;
 
 namespace ProjectManagement.viewModels
 {

@@ -72,7 +72,6 @@ namespace ProjectManagement.Controllers
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> Create(ProjectCreateVM projectVM)
         {
-
             if (ModelState.IsValid)
             {
 				Status status = await _statusRepository.GetStatusByEnum(StatusEnum.Unassigned);
@@ -163,9 +162,9 @@ namespace ProjectManagement.Controllers
                 return NotFound();
             }
 
-            ProjectBaseVM projectBaseVM = _mapper.Map<ProjectBaseVM>(project);
+            ProjectBaseVM projectVM = _mapper.Map<ProjectBaseVM>(project);
 
-            return View(projectBaseVM);
+            return View(projectVM);
         }
 
         // POST: Projects/Delete/5
@@ -174,12 +173,38 @@ namespace ProjectManagement.Controllers
         public async Task<IActionResult> DeleteConfirmed(string id)
         {
             Project project = await _repository.FindById(id);
-            if (project != null)
+            try
             {
-                await _repository.Delete(project);
+				bool isDeleted = await _repository.Delete(project);
+			}
+            catch (Exception)
+            {
+				ICollection<Ticket> tickets = await _ticketRepository.FindByProjectId(id);
+
+				if (tickets.Count() > 0 )
+                {
+                    ViewData["Tickets"] = tickets;
+					ProjectBaseVM projectVM = _mapper.Map<ProjectBaseVM>(project);
+					return View(projectVM);
+				}
+                else
+                {
+                    throw;
+                }
             }
-            return RedirectToAction(nameof(Index));
+			return RedirectToAction(nameof(Index));
         }
 
-    }
+
+		// POST: Projects/DeleteRelatedTickets/5
+		[HttpPost, ActionName("DeleteRelatedTickets")]
+		[ValidateAntiForgeryToken]
+		public async Task<IActionResult> DeleteRelatedTickets(string id)
+		{
+			Project project = await _repository.FindById(id);
+            await _ticketRepository.DeleteByProjectId(id);
+			ProjectBaseVM projectVM = _mapper.Map<ProjectBaseVM>(project);
+            return View(nameof(Delete),projectVM);
+		}
+	}
 }
